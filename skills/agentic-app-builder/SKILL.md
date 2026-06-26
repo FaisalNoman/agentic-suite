@@ -161,9 +161,13 @@ into the planner + architect agents (warm start from prior runs). If absent, ski
 
 ### Step 4 — Dashboard launch (ALL MODES — greenfield, feature, AND surgical)
 **Always spawn the dashboard — no mode skips this.** Even a one-file surgical fix gets a board so the
-user can watch the diagnose → fix → review cards live. Copy `template/dashboard/` → `plan/dashboard/`
-(create `plan/state/` first if SURGICAL). Start in background:
-`node plan/dashboard/server.mjs`
+user can watch the diagnose → fix → review cards live. Copy the dashboard template → `plan/dashboard/`
+(create `plan/state/` first if SURGICAL), then start in the background: `node plan/dashboard/server.mjs`.
+**Resolve the template from THIS skill's base directory** (the absolute path in the skill header above):
+copy `<skill-base>/template/dashboard/` → `./plan/dashboard/`. Do NOT assume `template/dashboard/` sits
+under the cwd — that fails when this skill runs **nested** (e.g. invoked by the agentic-suite conductor),
+where the cwd is the user's project but the template lives in the skill install dir. This step is
+MANDATORY in EVERY run, including nested ones — never skip it.
 
 It auto-selects a free port (base 4317, steps up if busy) and writes `plan/state/dashboard.json` with
 `{port, url}` within ~1 second. The server also attempts to auto-open the browser, BUT when it's

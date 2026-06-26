@@ -64,7 +64,10 @@ primitives + degrade per `references/harness-adapters.md`.
 
 ### Step 3 — Dashboard launch
 
-Copy `template/dashboard/` → `plan/dashboard/`. Start: `node plan/dashboard/server.mjs`.
+Copy the dashboard template → `plan/dashboard/`, then start: `node plan/dashboard/server.mjs`.
+**Resolve the template from THIS skill's base directory** (absolute path in the skill header): copy
+`<skill-base>/template/dashboard/` → `./plan/dashboard/`. Do NOT assume it sits under the cwd — that
+breaks when run **nested** (e.g. by the agentic-suite conductor). Mandatory in every run, including nested.
 It auto-selects a free port (base 4318, steps up if busy) and writes `plan/state/dashboard.json`.
 Open it: Windows `cmd /c start "" {url}` · macOS `open {url}` · Linux `xdg-open {url}`.
 Print: "Dashboard live: {url}".

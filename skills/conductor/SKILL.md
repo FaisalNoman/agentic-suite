@@ -61,6 +61,12 @@ Invoke the **agentic-app-builder** skill (Skill tool) with `build_brief`. Let it
 (interview/plan/TDD/impl/review) to completion — the conductor does not interfere. Direct its work into
 a `build/` working area so its `plan/` is isolated.
 
+**Dashboard safety net.** agentic-app-builder must launch its board on :4317 by copying the template from
+**its own skill base dir** (`<agentic-app-builder-base>/template/dashboard/`) → `build/plan/dashboard/`.
+If `build/plan/state/dashboard.json` doesn't appear shortly after it starts (a nested-run path slip),
+copy the template yourself from the agentic-app-builder skill base and run `node build/plan/dashboard/server.mjs`.
+Never let the BUILD phase proceed with no board.
+
 When agentic-app-builder finishes (its Phase 9), capture where it wrote outputs and state.
 
 ## STAGE 3 — Handoff (synthesize the product brief)
@@ -81,7 +87,10 @@ bring-your-own-docs gate picks it up as the product brief.
 Set `phase = "grow"`. Tell the user: "Phase 2/2 — GROW. Handing the growth scope to agentic-worker with
 the product brief; its dashboard opens on :4318."
 
-Invoke the **agentic-worker** skill (Skill tool) with `grow_brief`, working in `grow/`. Because
+Invoke the **agentic-worker** skill (Skill tool) with `grow_brief`, working in `grow/`. **Dashboard safety
+net:** agentic-worker must launch its board on :4318 by copying the template from its own skill base dir
+(`<agentic-worker-base>/template/dashboard/`) → `grow/plan/dashboard/`; if `grow/plan/state/dashboard.json`
+doesn't appear, copy it yourself and run `node grow/plan/dashboard/server.mjs`. Because
 `grow/plan/docs/HANDOFF.json` is present, agentic-worker's docs gate uses it as the product context and
 SKIPS re-interviewing — its SEO/marketing/sales/research agents work against the real product (features,
 stack, URLs). Its specialist-registry router (P6) picks the business personas from the shared
