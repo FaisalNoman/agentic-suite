@@ -1,0 +1,19 @@
+{
+  "name": "agentic-suite",
+  "version": "0.1.0",
+  "description": "BUILD → GROW conductor: for a single request that needs both software AND growth work, it runs agentic-builder to build and ship the product, hands off a factual product brief, then runs intelli-agent to do the SEO/marketing/sales/research/content grounded in what was built. A thin in-session chain over the two skills. No API key.",
+  "author": { "name": "Faisal Nauman" },
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "skill",
+    "orchestrator",
+    "suite",
+    "conductor",
+    "sdlc",
+    "growth",
+    "marketing",
+    "chain",
+    "handoff"
+  ]
+}

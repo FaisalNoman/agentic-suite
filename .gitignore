@@ -1,0 +1,11 @@
+node_modules/
+build/
+grow/
+plan/
+outputs/
+.agentic-builder/
+suite-state.json
+HANDOFF.json
+*.log
+.DS_Store
+Thumbs.db
