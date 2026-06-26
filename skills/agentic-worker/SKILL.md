@@ -68,6 +68,9 @@ Copy the dashboard template → `plan/dashboard/`, then start: `node plan/dashbo
 **Resolve the template from THIS skill's base directory** (absolute path in the skill header): copy
 `<skill-base>/template/dashboard/` → `./plan/dashboard/`. Do NOT assume it sits under the cwd — that
 breaks when run **nested** (e.g. by the agentic-suite conductor). Mandatory in every run, including nested.
+**Order is fixed:** (1) START THE SERVER — `node plan/dashboard/server.mjs` (background); (2) wait for
+`plan/state/dashboard.json`, read its `url`; (3) open THAT `http://localhost:<port>` URL. **NEVER open
+`index.html` as a file (`file://…`)** — without the server there is no SSE and the board is dead.
 It auto-selects a free port (base 4318, steps up if busy) and writes `plan/state/dashboard.json`.
 Open it: Windows `cmd /c start "" {url}` · macOS `open {url}` · Linux `xdg-open {url}`.
 Print: "Dashboard live: {url}".

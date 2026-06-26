@@ -168,6 +168,11 @@ copy `<skill-base>/template/dashboard/` → `./plan/dashboard/`. Do NOT assume `
 under the cwd — that fails when this skill runs **nested** (e.g. invoked by the agentic-suite conductor),
 where the cwd is the user's project but the template lives in the skill install dir. This step is
 MANDATORY in EVERY run, including nested ones — never skip it.
+**Order is fixed — never shortcut it:** (1) START THE SERVER first — `node plan/dashboard/server.mjs`
+(background); (2) wait for `plan/state/dashboard.json` and read its `url` (`http://localhost:<port>`);
+(3) open THAT http URL. **NEVER open `index.html` as a file (`file://…`)** — a static file open has no
+server, so SSE never connects and the board sits dead/empty. The board ONLY works as the served http
+page. "Open the dashboard" = start the server, then open the http URL — not the HTML file.
 
 It auto-selects a free port (base 4317, steps up if busy) and writes `plan/state/dashboard.json` with
 `{port, url}` within ~1 second. The server also attempts to auto-open the browser, BUT when it's
