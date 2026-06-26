@@ -29,10 +29,16 @@ paid-media, finance, strategy, support, academic, product, project-management}`.
 Look for the shared registry in this order; stop at the first hit:
 
 1. `framework-state.json` → `specialist_registry_path` (absolute or relative to skill root).
-2. Sibling layout: `../agentic-builder/agents/registry.json`.
-3. Local copy: `references/specialist-registry.json` (maintained manually or by sync script).
-4. **None found** → skip persona injection entirely; dispatch plain generic agent. No crash,
-   no error surfaced to the user.
+2. **Shared-sibling layout (suite bundle):** `../agents/registry.json` — ONE `agents/` folder sibling to
+   the skill dirs, shared by agentic-builder and intelli-agent (no duplication). Preferred.
+3. Cross-skill layout: `../agentic-builder/agents/registry.json`.
+4. Co-located / standalone: `agents/registry.json`.
+5. Local index copy: `references/specialist-registry.json` (index only — names personas but cannot
+   inject bodies; last resort).
+6. **None found** → skip persona injection entirely; dispatch plain generic agent. No crash.
+
+Persona `.md` bodies live beside the resolved `registry.json` (its `path` values are relative to the
+`agents/` parent). Whichever location wins, the bodies must sit next to it.
 
 Registry schema (from agentic-builder):
 ```json

@@ -20,16 +20,16 @@ It is deliberately **thin**: it owns no build or growth logic — it only classi
 ## What's bundled (one install gives all three)
 
 This repo ships **all three skills** under `skills/` — `conductor`, `agentic-builder`, and
-`intelli-agent` — plus the shared **192-persona** `agents/registry.json` (under
-`skills/agentic-builder/agents/`). A single install registers everything; no separate installs, and the
-sibling path `../agentic-builder/agents/registry.json` that intelli-agent uses for specialist routing
-resolves out of the box.
+`intelli-agent` — plus a shared **192-persona** library in a single `skills/agents/` folder (a sibling of
+the skill dirs). Both agentic-builder and intelli-agent resolve it via `../agents/registry.json` — ONE
+copy, no duplication, no skill reaching into another's folder. A single install registers everything.
 
 ```
 agentic-suite/skills/
+  agents/            ← shared library: registry.json + 226 persona .md (sibling)
   conductor/         ← the BUILD→GROW orchestrator
-  agentic-builder/   ← software (P0–P6) + agents/registry.json
-  intelli-agent/     ← growth (P0–P6)
+  agentic-builder/   ← software (P0–P6) — resolves ../agents
+  intelli-agent/     ← growth (P0–P6) — resolves ../agents
 ```
 
 ## Install

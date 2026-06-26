@@ -24,6 +24,12 @@ frontmatter, and writes `agents/registry.json`. Rebuild after adding/removing ag
 node agents/build-registry.mjs
 ```
 
+**Registry location (resolution order).** Look for `registry.json`, first hit wins: `agents/registry.json`
+(standalone / co-located) → `../agents/registry.json` (suite bundle: a single shared `agents/` folder
+sibling to the skill dirs, used by both agentic-builder and intelli-agent). Persona `.md` bodies live
+beside it (the index's `path` values are relative to the `agents/` parent). None found → skip routing,
+use `general-purpose`.
+
 `registry.json` schema:
 ```json
 {
