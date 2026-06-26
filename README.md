@@ -17,10 +17,20 @@ actually built. One continuous BUILD → GROW flow. In-session, no API key.
 
 It is deliberately **thin**: it owns no build or growth logic — it only classifies, sequences, and bridges.
 
-## Prerequisites
+## What's bundled (one install gives all three)
 
-The `agentic-builder` and `intelli-agent` skills must be installed (the suite invokes them via the Skill
-tool). The conductor resolves the shared `agents/registry.json` from the agentic-builder install.
+This repo ships **all three skills** under `skills/` — `conductor`, `agentic-builder`, and
+`intelli-agent` — plus the shared **192-persona** `agents/registry.json` (under
+`skills/agentic-builder/agents/`). A single install registers everything; no separate installs, and the
+sibling path `../agentic-builder/agents/registry.json` that intelli-agent uses for specialist routing
+resolves out of the box.
+
+```
+agentic-suite/skills/
+  conductor/         ← the BUILD→GROW orchestrator
+  agentic-builder/   ← software (P0–P6) + agents/registry.json
+  intelli-agent/     ← growth (P0–P6)
+```
 
 ## Install
 
@@ -28,6 +38,13 @@ tool). The conductor resolves the shared `agents/registry.json` from the agentic
 /plugin marketplace add FaisalNoman/agentic-suite
 /plugin install agentic-suite@agentic-suite
 ```
+
+Installs **all three skills** at once. (The standalone `agentic-builder` / `intelli-agent` repos remain
+available if you want just one.)
+
+> **Sync note:** the bundled `agentic-builder` and `intelli-agent` are copies of their standalone repos.
+> Re-sync them on each release (or treat this suite as the source of truth and the standalone repos as
+> mirrors) to avoid drift.
 
 Then prompt, e.g.:
 
@@ -37,7 +54,7 @@ The conductor builds the app, hands off, and produces the growth deliverables ag
 
 ## Status
 
-- **Phase 1 (this release):** conductor + `HANDOFF.json` bridge; sequential dashboards (:4317 → :4318).
+- **Phase 1 (this release):** all three skills bundled in one install; conductor + `HANDOFF.json` bridge; sequential dashboards (:4317 → :4318).
 - **Phase 2 (planned):** unified BUILD→GROW dashboard (one board, one timeline).
 - **Phase 3 (planned):** extract a shared core (scheduler / registry / memory / dashboard) so both skills
   are thin frontends.

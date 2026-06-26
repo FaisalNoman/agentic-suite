@@ -9,8 +9,10 @@ A THIN orchestrator. It owns no build or growth logic of its own — it splits a
 **agentic-builder** (BUILD), hands off a product brief, then runs **intelli-agent** (GROW). Both skills
 do the real work unchanged; the conductor only classifies, sequences, and bridges.
 
-Prerequisite: the `agentic-builder` and `intelli-agent` skills must be installed (this suite invokes
-them via the Skill tool). If one is missing, say so and fall back to running the other directly.
+Bundled: this suite ships all three skills (`conductor` + `agentic-builder` + `intelli-agent`) plus the
+shared `agents/registry.json` under `skills/`, so a single install registers everything and the
+conductor's Skill-tool invocations always resolve. (If a skill is somehow missing, say so and fall back
+to running whichever is present.)
 
 ## Operating rules
 

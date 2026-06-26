@@ -5,7 +5,7 @@
     {
       "name": "agentic-suite",
       "source": "./",
-      "description": "BUILD → GROW conductor that chains agentic-builder (software) and intelli-agent (growth) for mixed build-and-grow requests. Requires both skills installed."
+      "description": "BUILD → GROW suite — one install bundles all three skills (conductor + agentic-builder + intelli-agent) and the shared 192-persona registry. Chains software build → growth work for mixed requests."
     }
   ]
 }

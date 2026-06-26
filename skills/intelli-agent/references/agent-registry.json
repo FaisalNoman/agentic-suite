@@ -1,0 +1,122 @@
+{
+  "agents": {
+    "research-agent": {
+      "description": "Web search, source synthesis, fact extraction. Requires citations. Flags proxy or low-confidence data explicitly.",
+      "domains": ["research", "analysis"],
+      "task_types": ["gather", "verify", "survey"],
+      "capability_tags": ["web_search", "citation", "long_output"],
+      "context_budget_tokens": 4000,
+      "memory_budget_tokens": 800,
+      "output_type": "markdown_report",
+      "sandbox_required": false,
+      "prompt_template": "references/prompts/research-agent.md",
+      "model": "sonnet",
+      "scheduler_role": "gather",
+      "high_stakes_auto_review": false
+    },
+    "code-agent": {
+      "description": "Implementation, debugging, scaffolding with TDD discipline. Self-reviews before returning. Security-first.",
+      "domains": ["code"],
+      "task_types": ["impl", "fix", "scaffold", "refactor"],
+      "capability_tags": ["file_write", "test_runner"],
+      "context_budget_tokens": 6000,
+      "memory_budget_tokens": 200,
+      "output_type": "file",
+      "sandbox_required": false,
+      "prompt_template": "references/prompts/code-agent.md",
+      "model": "sonnet",
+      "scheduler_role": "impl",
+      "high_stakes_auto_review": true
+    },
+    "data-agent": {
+      "description": "Data transformation, schema validation, aggregation, ETL. Never invents values. Flags all nulls explicitly.",
+      "domains": ["data_processing"],
+      "task_types": ["transform", "validate", "aggregate", "emit"],
+      "capability_tags": ["structured_output", "schema_validation"],
+      "context_budget_tokens": 3000,
+      "memory_budget_tokens": 200,
+      "output_type": "json",
+      "sandbox_required": false,
+      "prompt_template": "references/prompts/data-agent.md",
+      "model": "haiku",
+      "scheduler_role": "transform",
+      "high_stakes_auto_review": false
+    },
+    "content-agent": {
+      "description": "Document drafting, editing, formatting, summarisation. Requires tone and word-count target per task.",
+      "domains": ["content"],
+      "task_types": ["draft", "edit", "format", "summarize"],
+      "capability_tags": ["long_output"],
+      "context_budget_tokens": 5000,
+      "memory_budget_tokens": 400,
+      "output_type": "markdown_document",
+      "sandbox_required": false,
+      "prompt_template": "references/prompts/content-agent.md",
+      "model": "haiku",
+      "scheduler_role": "draft",
+      "high_stakes_auto_review": false
+    },
+    "analysis-agent": {
+      "description": "Comparison, pattern identification, recommendations, tradeoff evaluation. Shows reasoning. Uses SCQA format.",
+      "domains": ["analysis", "research"],
+      "task_types": ["analyze", "compare", "conclude", "recommend"],
+      "capability_tags": ["reasoning", "structured_output"],
+      "context_budget_tokens": 5000,
+      "memory_budget_tokens": 600,
+      "output_type": "structured_analysis",
+      "sandbox_required": false,
+      "prompt_template": "references/prompts/analysis-agent.md",
+      "model": "sonnet",
+      "scheduler_role": "analyze",
+      "high_stakes_auto_review": true
+    },
+    "review-agent": {
+      "description": "Scores prior agent output against criteria. Never rewrites — only judges. Gets zero memory tokens to stay fresh.",
+      "domains": ["all"],
+      "task_types": ["review", "validate", "fact-check"],
+      "capability_tags": [],
+      "context_budget_tokens": 3000,
+      "memory_budget_tokens": 0,
+      "output_type": "review_result",
+      "sandbox_required": false,
+      "prompt_template": "references/prompts/review-agent.md",
+      "model": "sonnet",
+      "scheduler_role": "review",
+      "high_stakes_auto_review": false
+    },
+    "coordinator-agent": {
+      "description": "Decomposes vague tasks into structured features and tasks. Merges multi-section outputs. Manages gates.",
+      "domains": ["all"],
+      "task_types": ["plan", "decompose", "merge", "gate"],
+      "capability_tags": ["long_output"],
+      "context_budget_tokens": 8000,
+      "memory_budget_tokens": 400,
+      "output_type": "plan_or_merged_file",
+      "sandbox_required": false,
+      "prompt_template": "references/prompts/coordinator-agent.md",
+      "model": "opus",
+      "scheduler_role": "plan",
+      "high_stakes_auto_review": false
+    }
+  },
+
+  "routing_table": {
+    "research":        { "default": "research-agent",  "fallback": "analysis-agent" },
+    "code":            { "default": "code-agent",       "fallback": null },
+    "data_processing": { "default": "data-agent",       "fallback": "analysis-agent" },
+    "content":         { "default": "content-agent",    "fallback": null },
+    "analysis":        { "default": "analysis-agent",   "fallback": "research-agent" }
+  },
+
+  "team_dispatch_rules": {
+    "high_stakes_auto_review": "When node.high_stakes=true OR agent.high_stakes_auto_review=true, auto-insert review-agent as a sequential DAG dependency after the worker node completes, before the milestone gate fires."
+  },
+
+  "specialist_registry": {
+    "enabled": true,
+    "description": "P6 — after routing_table picks the generic agent, select a specialist persona from the shared agents/registry.json and inject its persona body into the generic agent's prompt. See references/specialist-registry.md.",
+    "resolution_order": ["framework-state.specialist_registry_path", "../agentic-builder/agents/registry.json", "references/specialist-registry.json"],
+    "scope_note": "intelli routes research/analysis/content/data + business domains (marketing/sales/paid-media/finance/strategy/support/academic/product/project-management). In suite context, engineering/testing build domains are reserved for agentic-builder.",
+    "fallback": "No match / registry absent -> use the plain generic agent (no regression)."
+  }
+}
