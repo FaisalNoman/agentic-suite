@@ -1,7 +1,7 @@
 {
   "name": "agentic-suite",
   "version": "0.2.0",
-  "description": "BUILD → GROW suite. Bundles ALL THREE skills in one install — conductor + agentic-builder (software) + intelli-agent (growth) + the shared 192-persona registry. For a single request needing both software AND growth work, the conductor builds and ships the product, hands off a factual brief, then runs the growth work (SEO/marketing/sales/research/content) grounded in what was built. In-session, no API key.",
+  "description": "BUILD → GROW suite. Bundles ALL THREE skills in one install — conductor + agentic-app-builder (software) + agentic-worker (growth) + the shared 192-persona registry. For a single request needing both software AND growth work, the conductor builds and ships the product, hands off a factual brief, then runs the growth work (SEO/marketing/sales/research/content) grounded in what was built. In-session, no API key.",
   "author": { "name": "Faisal Nauman" },
   "license": "MIT",
   "keywords": [

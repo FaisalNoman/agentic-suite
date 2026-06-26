@@ -1,7 +1,7 @@
 # IA — Specialist-registry consumer (P6)
 
-Routes intelli-agent domain tasks through the shared `agents/registry.json` persona library
-(192 specialist personas built by agentic-builder). Extends the existing dispatch model:
+Routes agentic-worker domain tasks through the shared `agents/registry.json` persona library
+(192 specialist personas built by agentic-app-builder). Extends the existing dispatch model:
 domain-detector → routing_table → **specialist router** → persona-injected generic agent.
 Nothing in the existing flow is removed; this layer adds a persona prepend only.
 
@@ -9,13 +9,13 @@ Nothing in the existing flow is removed; this layer adds a persona prepend only.
 
 ## Scope
 
-**intelli-agent owns:** `research`, `analysis`, `content`, `data_processing`, and the business
+**agentic-worker owns:** `research`, `analysis`, `content`, `data_processing`, and the business
 domains: `marketing`, `sales`, `paid-media`, `finance`, `strategy`, `support`, `academic`,
 `product`, `project-management`.
 
-**agentic-builder owns (build domains):** `engineering`, `testing`, `design`, `product` (SDLC
+**agentic-app-builder owns (build domains):** `engineering`, `testing`, `design`, `product` (SDLC
 context). In **suite** context intelli must never select a build-domain persona — the routing
-guard filters them from candidates. In **standalone** context (no agentic-builder sibling) intelli
+guard filters them from candidates. In **standalone** context (no agentic-app-builder sibling) intelli
 MAY still use `code-agent` for code tasks; the specialist router will skip build-domain personas
 unless `ALLOW_BUILD_PERSONAS=true` is set in `framework-state.json`.
 
@@ -30,8 +30,8 @@ Look for the shared registry in this order; stop at the first hit:
 
 1. `framework-state.json` → `specialist_registry_path` (absolute or relative to skill root).
 2. **Shared-sibling layout (suite bundle):** `../agents/registry.json` — ONE `agents/` folder sibling to
-   the skill dirs, shared by agentic-builder and intelli-agent (no duplication). Preferred.
-3. Cross-skill layout: `../agentic-builder/agents/registry.json`.
+   the skill dirs, shared by agentic-app-builder and agentic-worker (no duplication). Preferred.
+3. Cross-skill layout: `../agentic-app-builder/agents/registry.json`.
 4. Co-located / standalone: `agents/registry.json`.
 5. Local index copy: `references/specialist-registry.json` (index only — names personas but cannot
    inject bodies; last resort).
@@ -40,7 +40,7 @@ Look for the shared registry in this order; stop at the first hit:
 Persona `.md` bodies live beside the resolved `registry.json` (its `path` values are relative to the
 `agents/` parent). Whichever location wins, the bodies must sit next to it.
 
-Registry schema (from agentic-builder):
+Registry schema (from agentic-app-builder):
 ```json
 { "schema": 1, "agents": [
   { "name": "SEO Specialist", "domain": "marketing",
@@ -162,8 +162,8 @@ Specialist routing is best-effort and never blocks a task. No regression on any 
 
 ## Status
 
-P6 deliverable for intelli-agent: specialist-router logic, registry path resolution, and
+P6 deliverable for agentic-worker: specialist-router logic, registry path resolution, and
 persona injection. The shared registry (`agents/registry.json`) and its builder
-(`agents/build-registry.mjs`) are owned by agentic-builder and consumed read-only here.
+(`agents/build-registry.mjs`) are owned by agentic-app-builder and consumed read-only here.
 Local copy at `references/specialist-registry.json` is the offline fallback; keep it synced
 when adding new intelli-relevant personas.

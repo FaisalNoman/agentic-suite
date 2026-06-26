@@ -1,7 +1,7 @@
 # Cross-Session Shared Memory (P2)
 
 Persistent keyword-retrieved store written to `.agentic-builder/memory.json` at the project root.
-Survives `plan/` deletion. Shared schema with the agentic-builder skill — both read and write the same file, enabling warm-starts across runs and across tools.
+Survives `plan/` deletion. Shared schema with the agentic-app-builder skill — both read and write the same file, enabling warm-starts across runs and across tools.
 
 **vs per-run state** (`plan/state/`): per-run state is cold each run and stores full agent outputs for replay within one run; this layer is cross-run, stores distilled decisions/failures/glossary, and provides a warm start for the *next* run.
 
@@ -113,12 +113,12 @@ Both layers can run simultaneously; they serve different purposes.
 | Dimension | chromadb vector layer (`memory-policy.md`) | This keyword layer |
 |---|---|---|
 | **Retrieval** | Semantic cosine similarity via embeddings | Token overlap — no model required |
-| **Scope** | This project's runs only (`ia_{project_slug}` namespace) | Portable — shared with agentic-builder, any project at that root |
+| **Scope** | This project's runs only (`ia_{project_slug}` namespace) | Portable — shared with agentic-app-builder, any project at that root |
 | **Storage** | `plan/state/memory/` (deleted on plan-dir purge) | `.agentic-builder/memory.json` (survives plan-dir deletion) |
 | **Content** | Full agent summaries, any agent type | Distilled decisions, failures, glossary — coordinator + analysis focus |
 | **Token budget** | Per-agent caps (200–800 tok, 0 for review-agent) | ~800 tok total across top-3 milestones |
 | **Human-readable** | No (binary embeddings) | Yes — 2-space JSON, commitable to git |
-| **Shared across tools** | No — intelli-agent only | Yes — same file/schema as agentic-builder |
+| **Shared across tools** | No — agentic-worker only | Yes — same file/schema as agentic-app-builder |
 | **When unavailable** | `caps.memory=false` → all agents get 0 tok silently | File absent → skip silently, no impact on run |
 
 **If chromadb is off** (`caps.memory = false`): the vector layer is skipped entirely, but this keyword layer still loads and injects normally — the two are independent. Both running together is the richest configuration.

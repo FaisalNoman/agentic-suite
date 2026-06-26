@@ -1,5 +1,5 @@
 {
-  "name": "intelli-agent",
+  "name": "agentic-worker",
   "version": "1.1.0",
   "description": "General-purpose multi-agent orchestrator: turns any task into parallel specialist agent swarms on a global dependency-graph scheduler — research, code, data, content, analysis, and business (marketing/sales/finance/strategy) domains. Specialized agent registry + a shared 192-persona library, runtime file-ownership locking, per-role model tiering + token/USD budget caps, dual memory (vector + cross-session), session replay, unattended/CI mode, task-level review, live dashboard. No API key. Runs in-session under Claude Code.",
   "author": { "name": "Faisal Nauman" },

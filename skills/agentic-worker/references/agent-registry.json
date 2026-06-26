@@ -115,8 +115,8 @@
   "specialist_registry": {
     "enabled": true,
     "description": "P6 — after routing_table picks the generic agent, select a specialist persona from the shared agents/registry.json and inject its persona body into the generic agent's prompt. See references/specialist-registry.md.",
-    "resolution_order": ["framework-state.specialist_registry_path", "../agents/registry.json", "../agentic-builder/agents/registry.json", "agents/registry.json", "references/specialist-registry.json"],
-    "scope_note": "intelli routes research/analysis/content/data + business domains (marketing/sales/paid-media/finance/strategy/support/academic/product/project-management). In suite context, engineering/testing build domains are reserved for agentic-builder.",
+    "resolution_order": ["framework-state.specialist_registry_path", "../agents/registry.json", "../agentic-app-builder/agents/registry.json", "agents/registry.json", "references/specialist-registry.json"],
+    "scope_note": "intelli routes research/analysis/content/data + business domains (marketing/sales/paid-media/finance/strategy/support/academic/product/project-management). In suite context, engineering/testing build domains are reserved for agentic-app-builder.",
     "fallback": "No match / registry absent -> use the plain generic agent (no regression)."
   }
 }

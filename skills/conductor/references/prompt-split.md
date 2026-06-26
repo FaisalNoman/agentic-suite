@@ -5,11 +5,11 @@ briefs. Lightweight keyword + intent reasoning — no subagents.
 
 ## Signals
 
-**BUILD (→ agentic-builder, SDLC):**
+**BUILD (→ agentic-app-builder, SDLC):**
 - verbs: build, create, scaffold, prototype, ship, implement, develop, code, fix, debug, refactor, extend
 - nouns: app, web app, website, dashboard, API, CLI, library, tool, service, feature, bug
 
-**GROW (→ intelli-agent, business/research/content):**
+**GROW (→ agentic-worker, business/research/content):**
 - SEO, marketing, content, blog, social, campaign, go-to-market, GTM, launch plan
 - sales, sales proposal, pitch, outreach, pricing strategy
 - research, competitive analysis, market analysis, report, brief, strategy
@@ -22,8 +22,8 @@ needs_build = any BUILD signal present AND the deliverable includes software
 needs_grow  = any GROW signal present AND the deliverable includes a non-engineering output
 ```
 
-- `needs_build && !needs_grow` → run `agentic-builder` on the whole request; conductor stops.
-- `needs_grow && !needs_build` → run `intelli-agent` on the whole request; conductor stops.
+- `needs_build && !needs_grow` → run `agentic-app-builder` on the whole request; conductor stops.
+- `needs_grow && !needs_build` → run `agentic-worker` on the whole request; conductor stops.
 - both → MIXED → split (below) and run the BUILD → GROW chain.
 - neither clear → ask the user once.
 
@@ -31,14 +31,14 @@ Edge cases:
 - "build an app **that does** marketing" → the marketing is a PRODUCT FEATURE, not a GROW deliverable →
   BUILD-only. GROW is about producing growth ARTIFACTS (a strategy doc, copy, a plan), not app features.
 - "write a script to scrape SEO data" → that's software → BUILD (code), not GROW.
-- A pure data-analysis/report with no software → GROW-only (intelli-agent), conductor not needed.
+- A pure data-analysis/report with no software → GROW-only (agentic-worker), conductor not needed.
 
 ## Split (MIXED only)
 
 Produce two briefs, preserving the user's wording:
 
 - `build_brief` — only the software scope: the product, its features, stack, constraints. Drop the growth
-  asks. This is what agentic-builder interviews/plans against.
+  asks. This is what agentic-app-builder interviews/plans against.
 - `grow_brief` — only the growth scope: the SEO/marketing/sales/research/content/strategy deliverables.
   Phrase each as a concrete output. The product context is NOT duplicated here — it arrives via
   `HANDOFF.json` (see `handoff-contract.md`), so GROW stays grounded in what was actually built.

@@ -1,6 +1,6 @@
 // UserPromptSubmit hook: when the user's prompt is a general-purpose multi-domain task
 // (research, analysis, data, content — NOT a software build/fix), inject a nudge so
-// Claude Code prefers the `intelli-agent` skill over a generic response.
+// Claude Code prefers the `agentic-worker` skill over a generic response.
 // Zero-dependency; never blocks the prompt. Always exits 0.
 //
 // Contract: receives hook payload as JSON on stdin (has a `prompt` field). Anything
@@ -16,7 +16,7 @@ process.stdin.on("end", () => {
   const p = prompt.toLowerCase();
 
   // Don't fire if the user explicitly invoked a different skill/command.
-  if (/^\s*\//.test(prompt) && !/^\s*\/intelli-agent/.test(prompt)) { process.exit(0); }
+  if (/^\s*\//.test(prompt) && !/^\s*\/agentic-worker/.test(prompt)) { process.exit(0); }
 
   // Research signals
   const research = /\b(research|investigate|find out|look into|gather info|competitive analysis|market research|survey|literature review|fact.?check|compare .{0,30} tools|compare .{0,30} options|compare .{0,30} products)\b/;
@@ -39,8 +39,8 @@ process.stdin.on("end", () => {
 
   if (isIntelliTask) {
     process.stdout.write(
-      "[intelli-agent] This looks like a multi-domain research/analysis/content/data task. " +
-      "Prefer the `intelli-agent` skill — invoke it via the Skill tool before responding. " +
+      "[agentic-worker] This looks like a multi-domain research/analysis/content/data task. " +
+      "Prefer the `agentic-worker` skill — invoke it via the Skill tool before responding. " +
       "It is the general-purpose multi-agent orchestrator (specialized agent registry, global " +
       "dependency-graph scheduler, task-level review, vector memory, live dashboard, no API key) " +
       "and should be chosen over a plain conversational response for tasks that benefit from " +

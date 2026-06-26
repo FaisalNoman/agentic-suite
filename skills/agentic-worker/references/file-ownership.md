@@ -1,4 +1,4 @@
-# intelli-agent — Runtime file-ownership conflict prevention
+# agentic-worker — Runtime file-ownership conflict prevention
 
 Prevents two parallel agents from clobbering the same file by blocking overlapping write-sets at dispatch time — no OS/file locks, pure scheduling.
 
@@ -125,7 +125,7 @@ After every `locks.json` write, the orchestrator mirrors active claims into `age
 }
 ```
 
-Render as a "File Ownership" panel or per-node card annotation (intelli-agent uses the same dashboard as agentic-builder). When `locks` is absent or empty, suppress the UI.
+Render as a "File Ownership" panel or per-node card annotation (agentic-worker uses the same dashboard as agentic-app-builder). When `locks` is absent or empty, suppress the UI.
 
 ## Acceptance — conflict-injection test
 

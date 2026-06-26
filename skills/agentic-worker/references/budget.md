@@ -1,4 +1,4 @@
-# intelli-agent — Soft budget caps & cost tracking (P1)
+# agentic-worker — Soft budget caps & cost tracking (P1)
 
 Adds optional token/USD soft caps to the scheduler: warn at a configurable threshold,
 pause and prompt for approval when the cap is reached.

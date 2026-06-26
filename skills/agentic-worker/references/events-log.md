@@ -1,4 +1,4 @@
-# intelli-agent — Append-only event log (plan/state/events.jsonl)
+# agentic-worker — Append-only event log (plan/state/events.jsonl)
 
 Immutable, line-delimited record of every meaningful scheduler transition. Powers the
 shared dashboard's Replay tab and provides a tamper-evident audit trail for every run.

@@ -1,18 +1,18 @@
 # Changelog
 
-All notable changes to **intelli-agent** are documented here.
+All notable changes to **agentic-worker** are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [1.1.0]
 
-Parity with agentic-builder P0–P6, adapted to intelli-agent's multi-domain model.
+Parity with agentic-app-builder P0–P6, adapted to agentic-worker's multi-domain model.
 
 ### Added
 - **Specialist registry consumer (P6)** — after the routing_table picks a generic agent, a specialist
   persona is selected from the shared 192-persona `agents/registry.json` and injected into the generic
   agent's prompt (persona-injection; output contract unchanged). Covers research/analysis/content/data +
-  business domains (marketing/sales/finance/strategy/…); engineering/testing reserved for agentic-builder
-  in suite context. Path resolves to a configured path, the sibling agentic-builder repo, or the bundled
+  business domains (marketing/sales/finance/strategy/…); engineering/testing reserved for agentic-app-builder
+  in suite context. Path resolves to a configured path, the sibling agentic-app-builder repo, or the bundled
   `references/specialist-registry.json` copy; no match/absent → plain generic agent. (`references/specialist-registry.md`)
 - **Runtime file-ownership guard (P0)** — tasks declare `writes:[globs]`; FILL SLOTS defers any node whose
   writes overlap an in-flight node's; claims in `locks.json`, mirrored to a dashboard 🔒 strip. (`references/file-ownership.md`)
@@ -22,7 +22,7 @@ Parity with agentic-builder P0–P6, adapted to intelli-agent's multi-domain mod
 - **Cross-session memory (P2)** — a shared `.agentic-builder/memory.json` keyword layer warm-starts the
   coordinator + analysis agents, complementing the existing chromadb vector memory. (`references/cross-session-memory.md`)
 - **Session replay / audit (P3)** — append-only `plan/state/events.jsonl` feeding the dashboard Replay tab
-  (the dashboard is shared with agentic-builder). (`references/events-log.md`)
+  (the dashboard is shared with agentic-app-builder). (`references/events-log.md`)
 - **Unattended / CI mode (P4)** — run the in-session orchestrator with no human in the loop; gates
   auto-resolve, results land in `plan/state/RESULT.json`. (`references/unattended-mode.md`)
 - **Multi-harness adapter contract (P4)** — isolates Claude-Code-specific primitives with explicit

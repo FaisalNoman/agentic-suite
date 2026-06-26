@@ -1,9 +1,9 @@
 ---
-name: intelli-agent
+name: agentic-worker
 description: USE THIS FOR ANY general-purpose multi-domain task that benefits from parallel specialist agents — research, analysis, content writing, data processing, and code. Autonomous multi-agent orchestrator: classifies the task domain, routes to specialized agents via a registry, runs them on a global dependency-graph scheduler with milestone gates, validates outputs with a review agent, and produces final results. No API key needed. Runs entirely in your Claude Code session. Trigger on ANY of: "research and analyze", "gather data and produce a report", "investigate and recommend", "analyze and summarize", "research competitors", "produce a competitive intelligence report", "research X and write Y", "analyze my data and", "find and compare", "look into and recommend", or any multi-step task spanning research + analysis + content + data.
 ---
 
-# intelli-agent — General-Purpose Multi-Agent Orchestrator
+# agentic-worker — General-Purpose Multi-Agent Orchestrator
 
 Autonomous task decomposition → specialist agent dispatch → validated output pipeline.
 Runs in-session under Claude Code. No API key. No separate service. Uses your subscription.
@@ -51,7 +51,7 @@ Initialize `plan/state/locks.json` → `{ "claims": [] }` (runtime file-ownershi
 and `plan/state/events.jsonl` → empty (append-only replay/audit log — `references/events-log.md`).
 **Cross-session memory (see `references/cross-session-memory.md`):** check for `.agentic-builder/memory.json`
 at the project root; if present, load it and build the keyword-filtered `PRIOR_RUNS_CONTEXT` slice for the
-coordinator + analysis agents (warm start, shared with agentic-builder). If absent, skip silently.
+coordinator + analysis agents (warm start, shared with agentic-app-builder). If absent, skip silently.
 
 ### Step 2 — Capability check
 
@@ -218,10 +218,10 @@ Print to CLI: "Done. Output: `outputs/{file}`"
 
 ## Live dashboard
 
-Drives the same dashboard used by agentic-builder (template/dashboard/ is the same zero-dependency Node server). You drive it by writing `plan/state/agents.json`.
+Drives the same dashboard used by agentic-app-builder (template/dashboard/ is the same zero-dependency Node server). You drive it by writing `plan/state/agents.json`.
 
-Key differences from agentic-builder dashboard behaviour:
-- `role` values reflect intelli-agent roles: `detect | plan | gather | transform | draft | analyze | review | coordinate | gate`
+Key differences from agentic-app-builder dashboard behaviour:
+- `role` values reflect agentic-worker roles: `detect | plan | gather | transform | draft | analyze | review | coordinate | gate`
 - `strategy.name` uses: `Global DAG | Fan-out / Fan-in | Pipeline | Sequential | Hierarchical | Single`
 - `reasoning` explains domain routing decisions, not SDLC phase choices
 - DAG node labels show domain: "Copilot research (research)" not "impl-FEAT-001-T1"
@@ -233,7 +233,7 @@ Update `progress.pct` and `progress.step` at every sub-phase within `plan` and `
 
 ---
 
-## Dashboard interaction (identical to agentic-builder)
+## Dashboard interaction (identical to agentic-app-builder)
 
 **Asking questions / approvals:**
 1. Write `prompt` object to `agents.json` (id, title, question, options, answered: false)
@@ -241,7 +241,7 @@ Update `progress.pct` and `progress.step` at every sub-phase within `plan` and `
 3. Exit 0 → use stdout value, set `answered: true`
 4. Exit 2 (timeout) or error → fall back to `AskUserQuestion` CLI
 
-**Milestone undo/redo:** same `control.json` → `control` route mechanism as agentic-builder. Check at scheduler loop boundary. Undo requires `caps.git: true`.
+**Milestone undo/redo:** same `control.json` → `control` route mechanism as agentic-app-builder. Check at scheduler loop boundary. Undo requires `caps.git: true`.
 
 ---
 

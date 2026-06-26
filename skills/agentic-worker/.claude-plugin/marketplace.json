@@ -1,9 +1,9 @@
 {
-  "name": "intelli-agent",
+  "name": "agentic-worker",
   "owner": { "name": "Faisal Nauman" },
   "plugins": [
     {
-      "name": "intelli-agent",
+      "name": "agentic-worker",
       "source": "./",
       "description": "General-purpose multi-agent orchestrator — research, code, data, content, analysis. Global DAG scheduler, specialized agent registry, task-level review, vector memory, live dashboard. No API key needed."
     }

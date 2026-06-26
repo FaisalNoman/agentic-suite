@@ -1,4 +1,4 @@
-# agentic-builder — Build Roadmap
+# agentic-app-builder — Build Roadmap
 
 Derived from a gap analysis against Superpowers, Ruflo, and claude-swarm.
 Items already shipped in the skill were excluded; only true gaps remain.
@@ -69,12 +69,12 @@ Submit to official Claude plugin marketplace. At low star count, discovery > fea
 
 ## P6 — Domain-agent registry + router (planned, not built)
 
-**Status:** planned. P0–P5 shipped. Decision: **hybrid split** — `agentic-builder` routes only
-software-build domains to specialists; business/research/content domains are `intelli-agent`'s job.
+**Status:** planned. P0–P5 shipped. Decision: **hybrid split** — `agentic-app-builder` routes only
+software-build domains to specialists; business/research/content domains are `agentic-worker`'s job.
 Shared registry + builder live in this repo and are consumed by both skills.
 
 **Problem:** the repo carries 226 `agents/*.md` specialists across 17 domains, but nothing dispatches
-them — `agentic-builder` spawns only generic `subagent_type:"general-purpose"`. The personas are dead
+them — `agentic-app-builder` spawns only generic `subagent_type:"general-purpose"`. The personas are dead
 weight today.
 
 **Agent file format:** YAML frontmatter `{ name, description, color, emoji, vibe }` + a markdown persona
@@ -95,11 +95,11 @@ body. No registry/index file exists yet.
 5. **Reference doc** — `references/agent-registry.md` (build, router, dispatch, degradation).
 
 ### Hybrid integration (the chosen split)
-- **agentic-builder** (build domains only: `engineering`, `testing`, `design`, `product`): generalize the
+- **agentic-app-builder** (build domains only: `engineering`, `testing`, `design`, `product`): generalize the
   Stage 2.4 design-router into an "agent-router" so build nodes upgrade from generic to specialist —
   e.g. `impl` → `engineering-backend-architect`, `review` → `engineering-code-reviewer`, UI →
   `design-ui-designer`. Stays in SDLC scope; just a smarter swarm. **Must NOT** route business domains.
-- **intelli-agent** (business/research/content: `marketing`, `sales`, `paid-media`, `finance`,
+- **agentic-worker** (business/research/content: `marketing`, `sales`, `paid-media`, `finance`,
   `strategy`, `support`, `academic`, …): consume the same `registry.json` for its domain classifier.
 - **Dashboard** — add a `persona` field to agent cards (specialist name + emoji) so the board shows
   which expert ran each node; absent → falls back to plain role.
@@ -108,7 +108,7 @@ body. No registry/index file exists yet.
 - `registry.json` lists all 226 agents with correct domain + path; `build-registry.mjs` regenerates it.
 - A build `impl` node for a backend task dispatches with the `engineering-backend-architect` persona
   (visible on the board); a low-confidence task falls back to `general-purpose`.
-- agentic-builder never routes a `marketing`/`sales`/`finance` persona (scope guard test).
+- agentic-app-builder never routes a `marketing`/`sales`/`finance` persona (scope guard test).
 
 **Effort:** M–L. **Main risk:** routing quality → keyword match + confidence threshold + fallback.
 **Sequencing:** separate branch/PR after P0–P5 merges.

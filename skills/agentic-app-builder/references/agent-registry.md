@@ -6,11 +6,11 @@ its own domains.
 
 ## Scope split (hybrid — do not cross it)
 
-- **agentic-builder may route ONLY build domains:** `engineering`, `testing`, `design`, `product`.
+- **agentic-app-builder may route ONLY build domains:** `engineering`, `testing`, `design`, `product`.
   These upgrade build nodes (architect/impl/review/UI) from generic to specialist while staying inside
-  the SDLC. **Hard scope guard:** agentic-builder must NEVER select a `marketing` / `sales` / `paid-media`
+  the SDLC. **Hard scope guard:** agentic-app-builder must NEVER select a `marketing` / `sales` / `paid-media`
   / `finance` / `support` / `academic` / `strategy` / etc. persona — those are not software-build work.
-- **intelli-agent** (separate skill) consumes the SAME `registry.json` for the business/research/content
+- **agentic-worker** (separate skill) consumes the SAME `registry.json` for the business/research/content
   domains. Out of scope for this skill; noted so both stay consistent.
 
 `BUILD_DOMAINS = {engineering, testing, design, product}`.
@@ -26,7 +26,7 @@ node agents/build-registry.mjs
 
 **Registry location (resolution order).** Look for `registry.json`, first hit wins: `agents/registry.json`
 (standalone / co-located) → `../agents/registry.json` (suite bundle: a single shared `agents/` folder
-sibling to the skill dirs, used by both agentic-builder and intelli-agent). Persona `.md` bodies live
+sibling to the skill dirs, used by both agentic-app-builder and agentic-worker). Persona `.md` bodies live
 beside it (the index's `path` values are relative to the `agents/` parent). None found → skip routing,
 use `general-purpose`.
 
@@ -63,7 +63,7 @@ route(task, allowedDomains):
   else: return null            # → fall back to general-purpose
 ```
 
-- For **agentic-builder**, `allowedDomains = BUILD_DOMAINS` (the scope guard, enforced here).
+- For **agentic-app-builder**, `allowedDomains = BUILD_DOMAINS` (the scope guard, enforced here).
 - Ties → prefer the more specific description (longer overlap), else first by name.
 - Pick ONE persona per node (not a panel) to keep cost flat.
 
@@ -78,7 +78,7 @@ The Agent tool cannot load a repo `.md` as a `subagent_type`, so the mechanism i
 3. The persona changes HOW the agent works; it does **not** change the JSON output contract — the
    orchestrator still parses the same schema. Model tiering (`agent-contracts.md`) still applies.
 
-## Integration in agentic-builder (build nodes only)
+## Integration in agentic-app-builder (build nodes only)
 
 At dispatch (scheduler `DISPATCH`), for each WORK node, before building its prompt:
 - Map node → candidate domain: `architect`/`impl` backend → `engineering`; UI `impl` → `design`;
@@ -102,10 +102,10 @@ absent → the card renders the plain role (today's look).
 
 - `registry.json` missing → skip routing entirely, all nodes use `general-purpose`.
 - No candidate ≥ THRESHOLD → `general-purpose`.
-- A node outside `BUILD_DOMAINS` → never routed by agentic-builder (scope guard); plain dispatch.
+- A node outside `BUILD_DOMAINS` → never routed by agentic-app-builder (scope guard); plain dispatch.
 - Persona file unreadable → drop persona, dispatch plain. Routing is best-effort and never blocks a build.
 
 ## Status
 
-Shared core (`build-registry.mjs` + `registry.json`) and the agentic-builder build-domain router are the
-P6 deliverable here. intelli-agent's business-domain consumption is tracked in that skill's repo.
+Shared core (`build-registry.mjs` + `registry.json`) and the agentic-app-builder build-domain router are the
+P6 deliverable here. agentic-worker's business-domain consumption is tracked in that skill's repo.

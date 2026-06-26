@@ -1,4 +1,4 @@
-# intelli-agent — Unattended (non-interactive / CI) mode
+# agentic-worker — Unattended (non-interactive / CI) mode
 
 Same in-session orchestrator, same Agent-tool swarm — no separate program, no API key. Human approval gates (rule 9: write prompt → `wait-answer.mjs` → CLI fallback) are replaced with deterministic rules.
 

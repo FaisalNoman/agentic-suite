@@ -1,6 +1,6 @@
-# intelli-agent — Global DAG Scheduler
+# agentic-worker — Global DAG Scheduler
 
-This is the heart of intelli-agent. One global dependency graph over the whole
+This is the heart of agentic-worker. One global dependency graph over the whole
 task set. No sprint barriers. Every task whose dependencies are met runs now
 (up to the concurrency cap), across all domains and milestones at once.
 

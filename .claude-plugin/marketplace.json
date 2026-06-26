@@ -5,7 +5,7 @@
     {
       "name": "agentic-suite",
       "source": "./",
-      "description": "BUILD → GROW suite — one install bundles all three skills (conductor + agentic-builder + intelli-agent) and the shared 192-persona registry. Chains software build → growth work for mixed requests."
+      "description": "BUILD → GROW suite — one install bundles all three skills (conductor + agentic-app-builder + agentic-worker) and the shared 192-persona registry. Chains software build → growth work for mixed requests."
     }
   ]
 }

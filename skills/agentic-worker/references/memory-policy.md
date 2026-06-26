@@ -4,7 +4,7 @@ Vector memory uses chromadb in local mode (zero subscription cost).
 
 > **Two memory layers.** This file covers the **chromadb vector** layer (rich semantic recall, per-project,
 > per-agent token budgets). A second **cross-session keyword** layer — the shared `.agentic-builder/memory.json`,
-> used for warm-starting planning and shared with agentic-builder — is described in
+> used for warm-starting planning and shared with agentic-app-builder — is described in
 > `references/cross-session-memory.md`. Both can run; if chromadb is off (`caps.memory=false`) the keyword
 > layer still works.
 Embeddings generated via the Anthropic API at task completion.

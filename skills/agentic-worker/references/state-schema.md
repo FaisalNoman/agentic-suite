@@ -1,4 +1,4 @@
-# intelli-agent — State & Schema Reference
+# agentic-worker — State & Schema Reference
 
 All state files live under `plan/state/`. JSON. Updated after every transition.
 The dashboard reads `plan/state/agents.json` over SSE.
@@ -227,7 +227,7 @@ One JSON object per line: `{ seq, t, type, ... }`. Types: `run.start`, `agent.st
 
 ## .agentic-builder/memory.json (cross-session — PROJECT ROOT — see references/cross-session-memory.md)
 
-Shared keyword memory (same file + schema as agentic-builder): `{ version, project, runs[], milestones{}, glossary }`. Loaded at Stage 0; a slice warm-starts the coordinator + analysis agents. Complements the chromadb vector memory (`memory-policy.md`), which stays per-project.
+Shared keyword memory (same file + schema as agentic-app-builder): `{ version, project, runs[], milestones{}, glossary }`. Loaded at Stage 0; a slice warm-starts the coordinator + analysis agents. Complements the chromadb vector memory (`memory-policy.md`), which stays per-project.
 
 ## specialist registry (shared — see references/specialist-registry.md)
 

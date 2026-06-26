@@ -1,4 +1,4 @@
-# intelli-agent — Multi-harness portability adapter contract (P4b)
+# agentic-worker — Multi-harness portability adapter contract (P4b)
 
 Abstract the Claude-Code-specific primitives behind named adapter operations so the orchestrator, registry-driven dispatch, and DAG scheduler remain harness-agnostic.
 
@@ -81,7 +81,7 @@ The **only CC-specific piece** is the transcript path `~/.claude/projects/<slug>
 
 ## Status
 
-This document is the **portability contract** for the intelli-agent skill.
+This document is the **portability contract** for the agentic-worker skill.
 
 - **Claude Code** is the only fully-implemented adapter. All primitives map to concrete tool calls; the columns above describe live, tested behavior.
 - **Codex, Gemini CLI, Cursor, and others** are forward-looking mappings only. The adapter rows show design intent; no code has been written or tested for those harnesses.
