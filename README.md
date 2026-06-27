@@ -151,7 +151,11 @@ Three modes auto-detected:
 ---
 
 ## Live dashboard
+### SDLC Build - Dashboard
 <img width="1852" height="881" alt="dashboard" src="https://github.com/user-attachments/assets/ea2884de-d3e7-4c5c-b59e-bc0fbf9f888a" />
+### GROW Research Dashboard
+<img width="1842" height="882" alt="image" src="https://github.com/user-attachments/assets/03bde492-722b-4dfc-9cc6-2cb2c178035e" />
+
 Each phase opens a real-time, zero-dependency board (BUILD `:4317`, GROW `:4318`) over SSE. Two-way — questions and
 approvals happen on the board, not the CLI.
 
