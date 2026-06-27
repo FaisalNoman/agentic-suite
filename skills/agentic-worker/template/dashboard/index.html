@@ -904,7 +904,8 @@ $("rp-reload").addEventListener("click",loadReplay);
 function setView(v){
   $$(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.view===v));
   $$(".view").forEach(s=>s.classList.toggle("show",s.id==="view-"+v));
-  if(v==="plan"&&LAST)renderDAG(LAST);
+  if(v==="plan"&&LAST){ DAG_LAYOUT_SIG=null; renderDAG(LAST); }   // force a fresh redraw WHILE visible so the
+  // flow/pulse CSS animations start (elements inserted into a hidden tab don't animate until a real paint)
   if(v==="tests")testStreamConnect();
   if(v==="replay")loadReplay();
   if(location.hash.slice(1)!==v)history.replaceState(null,"","#"+v);
