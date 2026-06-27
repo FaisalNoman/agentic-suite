@@ -232,8 +232,8 @@ node plan/showcase/build-showcase.mjs outputs "<product/run title>"
   sidebar (grouped by sub-folder), a reading pane with per-doc table of contents, and a theme toggle.
 - Title: use the product name (under the conductor, the `HANDOFF.json` `product`); else the run/folder name.
 - It prints the written path on stdout and exits 1 if no `.md` were found (skip silently in that case).
-- **Open it for the user** (it's a `file://` page, so open via the OS, not the browser tab):
-  Windows `cmd /c start "" outputs/showcase.html` · macOS `open outputs/showcase.html` · Linux `xdg-open …`.
+- **It auto-opens the page in the OS default browser when ready** (it's a `file://` page, opened via the OS).
+  For **unattended/CI** runs pass `--no-open` to suppress: `node plan/showcase/build-showcase.mjs outputs "<title>" --no-open`.
 - Best-effort — never fail the run if generation/opening errors; just note it in the log.
 
 Add the path to the final `agents.json` log and the CLI summary.

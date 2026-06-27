@@ -13,6 +13,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 /* ─────────────────────────── markdown → HTML ───────────────────────────
@@ -400,9 +401,12 @@ function applyTheme(t){ document.documentElement.dataset.theme=t; $("ti").innerH
 /* ─────────────────────────── main ─────────────────────────── */
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const argDir = process.argv[2] || "outputs";
+const rawArgs = process.argv.slice(2);
+const NO_OPEN = rawArgs.includes("--no-open");
+const pos = rawArgs.filter((a) => !a.startsWith("--"));
+const argDir = pos[0] || "outputs";
 const outputsDir = path.isAbsolute(argDir) ? argDir : path.resolve(process.cwd(), argDir);
-const title = process.argv[3] || path.basename(path.resolve(outputsDir, "..")) || "Deliverables";
+const title = pos[1] || path.basename(path.resolve(outputsDir, "..")) || "Deliverables";
 
 const found = [];
 walkMd(outputsDir, outputsDir, found);
@@ -434,3 +438,20 @@ const docs = found.map((f, idx) => {
 const outFile = path.join(outputsDir, "showcase.html");
 fs.writeFileSync(outFile, buildHtml(title, docs), "utf8");
 console.log(outFile);
+
+// Auto-open in the OS default browser once ready (suppress with --no-open).
+// file:// page, so it must be opened by the OS, not navigated to from a tab.
+function openInBrowser(file) {
+  if (NO_OPEN) { console.log("(auto-open suppressed: --no-open)"); return; }
+  try {
+    const plat = process.platform;
+    const cmd = plat === "win32" ? "cmd" : plat === "darwin" ? "open" : "xdg-open";
+    const args = plat === "win32" ? ["/c", "start", "", file] : [file];
+    const child = spawn(cmd, args, { detached: true, stdio: "ignore" });
+    child.on("error", (e) => console.error(`(auto-open failed: ${e.message} — open manually: ${file})`));
+    child.unref();
+  } catch (e) {
+    console.error(`(auto-open unavailable: ${e?.message} — open manually: ${file})`);
+  }
+}
+openInBrowser(outFile);
