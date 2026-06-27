@@ -1,4 +1,5 @@
 # agentic-suite
+<img width="1522" height="802" alt="image" src="https://github.com/user-attachments/assets/18724d2e-3a1d-48d4-9cb9-d8c33ae868ed" />
 
 **BUILD → GROW conductor.** For a single request that needs *both* software built *and* growth work on top
 of it (SEO, marketing, sales, research, content, strategy), the suite runs **agentic-app-builder** to build
