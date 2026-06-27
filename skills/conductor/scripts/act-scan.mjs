@@ -31,14 +31,18 @@ function titleOf(text, rel) {
   return rel.split("/").pop().replace(/\.md$/i, "").replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-// heuristic class + channel from filename + content keywords (orchestrator refines)
-function classify(rel, text) {
-  const n = (rel + " " + text.slice(0, 400)).toLowerCase();
-  const software = /\b(landing[- ]?page|website|web ?app|microsite|signup form|widget|component|prototype|demo page|html|build (a|the))\b/;
-  const social = /\b(tweet|thread|x post|linkedin post|social (post|copy))\b/;
-  const email = /\b(email|outreach|cold email|newsletter|drip)\b/;
+// heuristic class + channel — keyed on FILENAME + TITLE only (not body, which bleeds:
+// a GTM plan that mentions "landing page" must not classify as software). The
+// orchestrator refines per references/act-contract.md. Plan checked before software
+// so a "go-to-market" plan that names build artifacts still reads as a plan.
+function classify(rel, title) {
+  const n = (rel + " " + (title || "")).toLowerCase();
+  const planK = /\b(go[- ]?to[- ]?market|gtm|roadmap|strategy|launch[- ]?plan|plan|checklist)\b/;
+  const software = /\b(landing[- ]?page|website|web ?app|microsite|signup form|widget|component|prototype|demo page)\b/;
+  const social = /\b(tweets?|threads?|x post|linkedin post|social (post|copy))\b/;
+  const email = /\b(emails?|outreach|cold email|newsletter|drip)\b/;
   const blog = /\b(blog|article|post draft|cms)\b/;
-  const planK = /\b(go[- ]?to[- ]?market|gtm|roadmap|strategy|plan|checklist|launch plan)\b/;
+  if (planK.test(n))    return { class_guess: "plan", channel_guess: null };
   if (software.test(n)) return { class_guess: "software", channel_guess: null };
   if (social.test(n))   return { class_guess: "publishable", channel_guess: "social" };
   if (email.test(n))    return { class_guess: "publishable", channel_guess: "email" };
@@ -53,8 +57,9 @@ found.sort((a, b) => a.rel.localeCompare(b.rel));
 
 const deliverables = found.map((f, i) => {
   let text = ""; try { text = fs.readFileSync(f.full, "utf8"); } catch {}
-  const { class_guess, channel_guess } = classify(f.rel, text);
-  return { id: `act-${String(i + 1).padStart(3, "0")}`, source: `grow/outputs/${f.rel}`, title: titleOf(text, f.rel), class_guess, channel_guess };
+  const title = titleOf(text, f.rel);
+  const { class_guess, channel_guess } = classify(f.rel, title);
+  return { id: `act-${String(i + 1).padStart(3, "0")}`, source: `grow/outputs/${f.rel}`, title, class_guess, channel_guess };
 });
 
 const offered = deliverables.some((d) => d.class_guess === "software" || d.class_guess === "publishable");
