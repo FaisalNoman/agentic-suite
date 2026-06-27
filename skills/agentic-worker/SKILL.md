@@ -74,7 +74,7 @@ breaks when run **nested** (e.g. by the agentic-suite conductor). Mandatory in e
 It auto-selects a free port (base 4318, steps up if busy) and writes `plan/state/dashboard.json`.
 Open it: Windows `cmd /c start "" {url}` · macOS `open {url}` · Linux `xdg-open {url}`.
 Print: "Dashboard live: {url}".
-Write initial `agents.json` with `detect` card `status: "working"`. **Set `startedAt` to the current ISO timestamp here** — this is the run-start snapshot the dashboard uses to measure real token spend from the session transcript. Without it the Tokens KPI cannot isolate this run.
+Write initial `agents.json` with `detect` card `status: "working"`. **Set `startedAt` to the current ISO timestamp here** — this is the run-start snapshot the dashboard uses to measure real token spend from the session transcript. Without it the Tokens KPI cannot isolate this run. **Also set `cwd` once = the ABSOLUTE path of the directory where `claude` launched (the session CWD, NOT `grow/` or a worktree subdir)** — the server reads it to find the session transcript; without it nested (conductor) and worktree runs show 0 tokens.
 
 ### Step 4 — Foreground vs background
 
@@ -164,7 +164,7 @@ Clamp: `min(MAX_CONCURRENT, 16)`.
 }
 ```
 
-**Plan approval via dashboard:** write `prompt { id: "approve-plan", options: ["Approve", "Change scope"], openPlan: true }`, block on `wait-answer.mjs approve-plan 600`. Never build without approval.
+**Plan approval via dashboard:** write `prompt { id: "approve-plan", options: ["Approve", "Change scope"], openPlan: true, answered: false }` to `agents.json` FIRST (this pops the modal on the board — never skip it), then block on `node plan/dashboard/wait-answer.mjs approve-plan 600` **with Bash `timeout: 600000`** (the 120000ms default kills the wait at 2 min and false-falls back to the CLI). Never build without approval.
 
 Mark `plan` card `done`.
 
@@ -242,8 +242,8 @@ Update `progress.pct` and `progress.step` at every sub-phase within `plan` and `
 ## Dashboard interaction (identical to agentic-app-builder)
 
 **Asking questions / approvals:**
-1. Write `prompt` object to `agents.json` (id, title, question, options, answered: false)
-2. Block: `node plan/dashboard/wait-answer.mjs {id} {timeout_seconds}`
+1. Write `prompt` object to `agents.json` (id, title, question, options, answered: false) — ALWAYS do this first, every gate; it is what pops the modal on the board. Skipping it = silent dashboard (the reported bug).
+2. Block: `node plan/dashboard/wait-answer.mjs {id} {timeout_seconds}` — **pass the Bash tool `timeout` ≥ `{timeout_seconds}`×1000 ms** (e.g. `600` → `timeout: 600000`). The Bash default is 120000ms, which kills the wait at 2 min and false-triggers the CLI fallback.
 3. Exit 0 → use stdout value, set `answered: true`
 4. Exit 2 (timeout) or error → fall back to `AskUserQuestion` CLI
 

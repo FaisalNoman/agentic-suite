@@ -55,13 +55,23 @@ process.on("unhandledRejection", (e) => console.error("[dashboard] ignored:", e)
 // Measure real token spend from the session transcript and cache it (the scan
 // reads the project's JSONL, so throttle to a few seconds). Keyed on the run's
 // startedAt so it counts only this run.
-let _tokCache = null, _tokAt = 0;
-function measuredTokens(startedAt) {
+let _tokCache = null, _tokAt = 0, _tokKey = "";
+function measuredTokens(startedAt, sessionRoot) {
   const now = Date.now();
-  if (_tokCache && now - _tokAt < 3000) return _tokCache;
-  try { _tokCache = computeTokens(PROJECT_ROOT, startedAt); }
-  catch { _tokCache = null; }
-  _tokAt = now;
+  // The transcript dir is keyed to the dir where `claude` launched (the session
+  // CWD), NOT the dashboard's grandparent — those differ for nested runs (the
+  // conductor's build/ + grow/) and git worktrees, where PROJECT_ROOT points at
+  // a subdir/clone with no transcript. Prefer the orchestrator-reported cwd, then
+  // fall back to PROJECT_ROOT. Cache key includes both inputs so a cwd appearing
+  // mid-run invalidates a stale (null) cache.
+  const key = `${sessionRoot || ""}|${startedAt || ""}`;
+  if (_tokCache && _tokKey === key && now - _tokAt < 3000) return _tokCache;
+  let r = null;
+  try { if (sessionRoot) r = computeTokens(sessionRoot, startedAt); } catch { r = null; }
+  if (!r || !(r.total > 0)) {
+    try { r = computeTokens(PROJECT_ROOT, startedAt); } catch { r = null; }
+  }
+  _tokCache = r; _tokAt = now; _tokKey = key;
   return _tokCache;
 }
 
@@ -82,7 +92,7 @@ function readState() {
     // history (other runs included) and wildly over-count. No startedAt → leave
     // the state's own tokens (per-agent estimates) untouched.
     if (since) {
-      const m = measuredTokens(since);
+      const m = measuredTokens(since, s.cwd || s.sessionRoot || null);
       if (m && m.total > 0) { s.tokens = { ...m, measured: true }; return JSON.stringify(s); }
     }
   } catch { /* not valid JSON yet — return raw */ }

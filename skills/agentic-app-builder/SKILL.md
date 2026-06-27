@@ -84,9 +84,12 @@ epic = feature · story = task · subtask = implementation unit.
     board FIRST. **You CANNOT run `AskUserQuestion` and `wait-answer.mjs` at the same time** (one tool
     call at a time — if you call `AskUserQuestion`, the session blocks on the CLI and your dashboard
     click is never read; that's the bug to avoid). So the order is STRICT:
-    a. write a `prompt` object into `agents.json` (`{id, title, question, plan?, options?, answered:false}`);
+    a. write a `prompt` object into `agents.json` (`{id, title, question, plan?, options?, answered:false}`).
+       This write is cheap + non-blocking — **ALWAYS do it, every gate, before anything else.** The card
+       is what makes the modal pop on the board; skip it and the dashboard stays silent (the bug being reported).
     b. **run `node plan/dashboard/wait-answer.mjs <id> 600` (Bash) — this blocking call IS the await.**
-       Do NOT call `AskUserQuestion` yet.
+       **You MUST pass the Bash tool `timeout: 600000`** — the default 120000ms kills the wait at 2 min,
+       which looks like a timeout and wrongly drops you to the CLI. Do NOT call `AskUserQuestion` yet.
     c. **exit 0** → parse the value it printed on stdout, set `prompt.answered:true`, proceed. Done.
     d. **exit 2 (timeout) or error** (dashboard closed / not used) → ONLY THEN call `AskUserQuestion`
        in the CLI as the fallback, take that answer, set `prompt.answered:true`.
@@ -355,9 +358,10 @@ approval, and make the FLOW visible two ways:
    to point at the Plan tab, e.g. `"Open the Plan tab to review the build flow. Start building?"`.
    `prompt.plan` is optional and not shown in the modal — put the flow in the `dag` (Plan tab) instead.
 3. Approval is **dashboard-primary** (rule 12): write `prompt {id:"approve-plan", title, question,
-   options:["Approve","Change scope"]}`, then BLOCK on
-   `node plan/dashboard/wait-answer.mjs approve-plan 600`; only on its timeout/error fall back to
-   `AskUserQuestion`. **Get explicit approval before any code.**
+   options:["Approve","Change scope"], openPlan:true, answered:false}` to `agents.json` FIRST (this is
+   what pops the approval modal on the board — never skip it), then BLOCK on
+   `node plan/dashboard/wait-answer.mjs approve-plan 600` **with Bash `timeout: 600000`**; only on its
+   timeout/error fall back to `AskUserQuestion`. **Get explicit approval before any code.**
 
 ### Hierarchical threshold check (run after the global DAG is finalized)
 
@@ -556,7 +560,10 @@ and pushes updates over SSE — the page reflects every write instantly, so keep
 - **after** each agent returns → set its `status:"done"` (or `"blocked"`), a final `note`, and clear/replace `detail`.
 
 Also set the top-level fields each update: `root` (project folder name) + `startedAt` (once, at first
-write) so the header chip + elapsed clock work; `strategy` `{name, how}` (the agentic pattern you're
+write) so the header chip + elapsed clock work; **`cwd` (once, at first write) = the ABSOLUTE path of the
+directory where `claude` was launched (the session CWD — your current working directory, NOT `build/`,
+`grow/`, or a worktree subdir). The dashboard reads `cwd` to locate the session transcript and report REAL
+token spend; without it, nested runs (conductor build/grow) and worktree runs show 0 tokens.** `strategy` `{name, how}` (the agentic pattern you're
 using right now — e.g. `Fan-out / Fan-in` for parallel independent impl, `Sequential` for a dependency
 chain, `Pipeline` for staged work, `Single` for a lone phase — with a one-line "how it works");
 `reasoning` (rationale for the CURRENT activity — *why* one agent vs several, e.g. "3 in parallel:
@@ -662,7 +669,8 @@ approve/reject, and any interview question you want on-screen):
      default browser (via the server's `/open` route — works for `file://` wireframes on Windows). Use it
      on the **wireframe-approval** prompt, e.g. `"openUrl": "file:///.../plan/wireframe/index.html"`.
 2. **Block for the dashboard answer FIRST** with the bundled bridge — run as a Bash call (this blocking
-   IS your await): `node plan/dashboard/wait-answer.mjs approve-plan 600`
+   IS your await): `node plan/dashboard/wait-answer.mjs approve-plan 600` **with the Bash tool
+   `timeout: 600000`** (the 120000ms default would kill the wait at 2 min and false-trigger the CLI fallback).
    It prints the chosen value (JSON) on stdout and exits 0 when the user clicks the button; exits 2 on timeout.
    **Do NOT call `AskUserQuestion` while this is running** — you can only run one tool call at a time, so
    calling the CLI question instead would block the session on the CLI and the button click would never
