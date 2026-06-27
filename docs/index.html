@@ -73,7 +73,25 @@ tr:nth-child(even) td{background:color-mix(in srgb,var(--panel) 45%,transparent)
 .hero{padding-top:54px}
 .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:600 13px var(--mono);color:var(--ink2);margin:18px 0}
 .flow b{color:var(--ink)} .flow .ar{color:var(--accent)}
-@media(max-width:880px){body{grid-template-columns:1fr} aside{display:none} .grid{grid-template-columns:1fr} .wrap,.topbar{padding-left:20px;padding-right:20px}}
+/* flow */
+.steps{list-style:none;margin:18px 0;padding:0;counter-reset:s}
+.steps>li{position:relative;padding:12px 0 12px 46px;border-bottom:1px solid var(--line)}
+.steps>li:last-child{border-bottom:none}
+.steps>li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:11px;width:30px;height:30px;border-radius:8px;
+  display:grid;place-items:center;font:700 13px var(--mono);color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 13%,transparent);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.steps>li b{color:var(--ink)} .steps>li .m{color:var(--dim);font:600 11px var(--mono)}
+.stagebar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0;font:600 12px var(--mono)}
+.stagebar .s{padding:7px 12px;border-radius:9px;border:1px solid var(--line2);background:var(--panel);color:var(--ink2)}
+.stagebar .s.k{border-color:color-mix(in srgb,var(--accent) 50%,transparent);color:#dfe7ff;background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.stagebar .ar{color:var(--accent)}
+.modecols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:18px 0}
+.modecols .card h3{display:flex;align-items:center;gap:8px}
+.tagx{font:600 9.5px var(--mono);letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:5px;border:1px solid var(--line2);color:var(--dim)}
+/* diagram */
+.diagram{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:8px;margin:18px 0;overflow-x:auto}
+.diagram svg{display:block;width:100%;min-width:760px;height:auto}
+@media(max-width:880px){body{grid-template-columns:1fr} aside{display:none} .grid,.modecols{grid-template-columns:1fr} .wrap,.topbar{padding-left:20px;padding-right:20px}}
 </style>
 </head>
 <body>
@@ -92,6 +110,12 @@ tr:nth-child(even) td{background:color-mix(in srgb,var(--panel) 45%,transparent)
     <div class="grp">Dashboard</div>
     <a href="#dashboard">Live dashboard</a>
     <a href="#personas">Persona routing</a>
+    <div class="grp">Flow</div>
+    <a href="#diagram">Workflow diagram</a>
+    <a href="#principles">Operating principles</a>
+    <a href="#conductor-flow">Conductor stages</a>
+    <a href="#build-flow">BUILD flow</a>
+    <a href="#grow-flow">GROW flow</a>
     <div class="grp">Operate</div>
     <a href="#preflight">Pre-flight (doctor)</a>
     <a href="#hooks">Enforcement hooks</a>
@@ -235,6 +259,170 @@ a content-marketing plan, and a sales proposal.</code></pre>
       <pre><code>node ~/.claude/skills/agentic-suite/scripts/route-preview.mjs \
   "design an SEO strategy and keyword plan for a SaaS" --domains marketing,strategy</code></pre>
       <p>At runtime the chosen persona shows as a badge on the agent card.</p>
+    </section>
+
+    <section id="diagram">
+      <div class="eyebrow">Flow</div>
+      <h2>Workflow diagram</h2>
+      <p>End-to-end: the conductor pre-flights, classifies, splits, runs <b>BUILD</b> (parallel DAG swarm) to a gated completion, hands off a factual brief, then runs <b>GROW</b> (parallel specialists) and opens the showcase. Each phase drives its own live board.</p>
+      <div class="diagram" style="background:#0d1117">
+        <svg viewBox="0 0 980 400" role="img" aria-label="agentic-suite BUILD to GROW workflow">
+          <defs>
+            <marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#7aa2ff"/></marker>
+            <marker id="ag" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#3a4150"/></marker>
+          </defs>
+          <style>
+            .bx{fill:#11161f;stroke:#2a3441;stroke-width:1.4;rx:9}
+            .bxk{fill:#11161f;stroke:#7aa2ff;stroke-width:1.5;rx:11}
+            .t{fill:#e6edf3;font:600 13px var(--sans)} .ts{fill:#aeb9c7;font:600 11px var(--sans)}
+            .tl{fill:#6b7787;font:600 10px var(--mono);letter-spacing:1.5px;text-transform:uppercase}
+            .e{stroke:#7aa2ff;stroke-width:1.8;fill:none} .eg{stroke:#3a4150;stroke-width:1.6;fill:none}
+            .chip{fill:#0e131b;stroke:#2a3441;stroke-width:1;rx:7} .ct{fill:#aeb9c7;font:600 11px var(--mono)}
+            .amber{fill:#f0c674} .green{fill:#22c55e} .acc{fill:#7aa2ff}
+          </style>
+
+          <!-- top pipeline -->
+          <g>
+            <rect class="bx" x="14" y="20" width="120" height="34" rx="9"/><text class="t" x="74" y="42" text-anchor="middle">request</text>
+            <path class="e" d="M138,37 H170" marker-end="url(#a)"/>
+            <rect class="bx" x="172" y="20" width="120" height="34" rx="9"/><text class="ts" x="232" y="41" text-anchor="middle">pre-flight ✓</text>
+            <path class="e" d="M296,37 H328" marker-end="url(#a)"/>
+            <rect class="bx" x="330" y="20" width="120" height="34" rx="9"/><text class="ts" x="390" y="41" text-anchor="middle">classify</text>
+            <path class="e" d="M454,37 H486" marker-end="url(#a)"/>
+            <rect class="bx" x="488" y="20" width="150" height="34" rx="9"/><text class="ts" x="563" y="41" text-anchor="middle">split → briefs</text>
+          </g>
+
+          <!-- BUILD cluster -->
+          <rect class="bxk" x="14" y="92" width="436" height="150" rx="13"/>
+          <text class="tl" x="30" y="116">BUILD · agentic-app-builder · :4317</text>
+          <rect class="chip" x="30" y="128" width="92" height="30"/><text class="ct" x="76" y="148" text-anchor="middle">interview</text>
+          <rect class="chip" x="130" y="128" width="92" height="30"/><text class="ct" x="176" y="148" text-anchor="middle">plan · DAG</text>
+          <rect class="chip" x="230" y="128" width="92" height="30"/><circle class="amber" cx="244" cy="143" r="3"/><text class="ct" x="262" y="148" text-anchor="middle">TDD</text>
+          <rect class="chip" x="330" y="128" width="104" height="30"/><circle class="amber" cx="346" cy="143" r="3"/><text class="ct" x="386" y="148" text-anchor="middle">impl ‖</text>
+          <rect class="chip" x="30" y="170" width="120" height="30"/><circle class="green" cx="46" cy="185" r="3"/><text class="ct" x="92" y="190" text-anchor="middle">two-stage review</text>
+          <rect class="chip" x="158" y="170" width="120" height="30"/><text class="ct" x="218" y="190" text-anchor="middle">wireframe demo</text>
+          <rect class="chip" x="286" y="170" width="148" height="30"/><text class="ct" x="360" y="190" text-anchor="middle">milestone gate · commit</text>
+
+          <!-- gate diamond -->
+          <path class="e" d="M450,167 H476" marker-end="url(#a)"/>
+          <path d="M500,150 L520,167 L500,184 L480,167 Z" fill="#11161f" stroke="#7aa2ff" stroke-width="1.5"/>
+          <text class="acc" x="500" y="171" text-anchor="middle" style="font:700 10px var(--mono)">gate</text>
+          <text class="tl" x="500" y="205" text-anchor="middle">2.5</text>
+
+          <!-- HANDOFF -->
+          <path class="e" d="M520,167 H544" marker-end="url(#a)"/>
+          <rect class="bx" x="544" y="150" width="84" height="34" rx="9"/><text class="ts" x="586" y="171" text-anchor="middle">HANDOFF</text>
+
+          <!-- GROW cluster -->
+          <path class="e" d="M628,167 H648" marker-end="url(#a)"/>
+          <rect class="bxk" x="650" y="92" width="316" height="150" rx="13"/>
+          <text class="tl" x="666" y="116">GROW · agentic-worker · :4318</text>
+          <rect class="chip" x="666" y="128" width="138" height="30"/><text class="ct" x="735" y="148" text-anchor="middle">domain · decompose</text>
+          <rect class="chip" x="812" y="128" width="138" height="30"/><circle class="amber" cx="828" cy="143" r="3"/><text class="ct" x="881" y="148" text-anchor="middle">specialists ‖</text>
+          <rect class="chip" x="666" y="170" width="138" height="30"/><text class="ct" x="735" y="190" text-anchor="middle">coherence merge</text>
+          <rect class="chip" x="812" y="170" width="138" height="30"/><circle class="green" cx="828" cy="185" r="3"/><text class="ct" x="881" y="190" text-anchor="middle">showcase.html</text>
+
+          <!-- bottom note -->
+          <path class="eg" d="M808,242 V268 H172 V250" marker-end="url(#ag)"/>
+          <rect class="bx" x="14" y="262" width="952" height="34" rx="9" fill="#0e131b"/>
+          <text class="ts" x="490" y="283" text-anchor="middle">crash-resume at every level (suite-state.json · framework-state.json) · /suite-resume · live dashboards throughout</text>
+
+          <!-- legend -->
+          <circle class="amber" cx="610" cy="330" r="4"/><text class="ct" x="622" y="334">working</text>
+          <circle class="green" cx="700" cy="330" r="4"/><text class="ct" x="712" y="334">done</text>
+          <rect x="772" y="326" width="9" height="9" rx="2" fill="#11161f" stroke="#7aa2ff"/><text class="ct" x="788" y="334">gate / parallel ‖</text>
+        </svg>
+      </div>
+    </section>
+
+    <section id="principles">
+      <div class="eyebrow">Flow</div>
+      <h2>Operating principles</h2>
+      <p>The non-negotiables the orchestrator follows on every run.</p>
+      <div class="grid">
+        <div class="card"><h3>Mode-first</h3><p>Detect GREENFIELD / FEATURE / SURGICAL before anything else — the mode decides which stages run.</p></div>
+        <div class="card"><h3>Parallel fan-out is mandatory</h3><p>When N tasks are ready, all N agents are dispatched in one message — never one-at-a-time for independent work.</p></div>
+        <div class="card"><h3>Isolated writes</h3><p>Each subagent owns exactly one file; the scheduler defers any task whose <code>writes</code> overlap an in-flight task (runtime file-ownership locks).</p></div>
+        <div class="card"><h3>Interfaces → tests → impl</h3><p>Ordering is enforced as <em>edges in the DAG</em> (<code>tdd</code> depends on <code>architect</code>; <code>impl</code> on <code>tdd</code>), not as serial phases — so chains hold globally while everything else runs.</p></div>
+        <div class="card"><h3>Every step is a card</h3><p>Interview, planner, gate, commit — every unit of work appears as a live dashboard card. No silent steps.</p></div>
+        <div class="card"><h3>Crash-resume</h3><p>State is persisted after every phase; on re-run the orchestrator reads it, skips the done set, re-queues interrupted work, and continues.</p></div>
+      </div>
+    </section>
+
+    <section id="conductor-flow">
+      <div class="eyebrow">Flow</div>
+      <h2>Conductor stages</h2>
+      <p>The thin suite-level orchestration that chains the two engines.</p>
+      <div class="stagebar">
+        <span class="s">0 · pre-flight + classify</span><span class="ar">→</span>
+        <span class="s">1 · split</span><span class="ar">→</span>
+        <span class="s k">2 · BUILD</span><span class="ar">→</span>
+        <span class="s">2.5 · gate</span><span class="ar">→</span>
+        <span class="s">3 · handoff</span><span class="ar">→</span>
+        <span class="s k">4 · GROW</span><span class="ar">→</span>
+        <span class="s">5 · wrap</span>
+      </div>
+      <ol class="steps">
+        <li><b>Stage 0 — Pre-flight &amp; classify.</b> Auto-run <code>suite-doctor</code>; on a blocking failure, stop. Then classify intent into <code>{needs_build, needs_grow, build_brief, grow_brief}</code> and route (build-only / grow-only / chain / ask).</li>
+        <li><b>Stage 1 — Split.</b> Produce two scoped briefs from the one request, confirm once on the dashboard, persist to <code>suite-state.json</code>.</li>
+        <li><b>Stage 2 — BUILD.</b> Invoke agentic-app-builder in <code>build/</code> (board on :4317); let its full pipeline run.</li>
+        <li><b>Stage 2.5 — Gate (blocking).</b> Run <code>check-build-gate.mjs</code>; proceed only if every milestone is done and <code>RESULT.json</code> (if present) is <code>done</code>. On fail: stop, report, offer resume.</li>
+        <li><b>Stage 3 — Handoff.</b> Synthesize <code>HANDOFF.json</code> (product, features, stack, URLs, decisions, <code>build_status</code>); copy into <code>grow/plan/docs/</code> so GROW skips re-interviewing.</li>
+        <li><b>Stage 4 — GROW.</b> Invoke agentic-worker in <code>grow/</code> (board on :4318) against the real product.</li>
+        <li><b>Stage 5 — Wrap.</b> Combined summary; point at the showcase + both dashboards’ Replay tabs.</li>
+      </ol>
+    </section>
+
+    <section id="build-flow">
+      <div class="eyebrow">Flow</div>
+      <h2>BUILD flow (agentic-app-builder)</h2>
+      <p>What runs inside Stage 2. Mode is detected first; the stage set follows.</p>
+      <div class="modecols">
+        <div class="card"><h3>GREENFIELD <span class="tagx">scratch</span></h3><p>Full pipeline: interview → design/wireframe → plan → TDD → parallel impl → review → finish.</p></div>
+        <div class="card"><h3>FEATURE <span class="tagx">extend</span></h3><p>Repo survey → feature scope → impact analysis + scoped plan → TDD → impl → stricter integration gate.</p></div>
+        <div class="card"><h3>SURGICAL <span class="tagx">fix</span></h3><p>Problem capture → systematic-debugging dispatch → targeted fix → verify. Reproduction-first.</p></div>
+      </div>
+      <h3>Stage 0 — preflight (all modes)</h3>
+      <ol class="steps">
+        <li><b>Resume check</b> — if <code>framework-state.json</code> exists, resume; skip the rest of Stage 0.</li>
+        <li><b>Mode detection</b> — directory state + request language → GREENFIELD / FEATURE / SURGICAL.</li>
+        <li><b>Git init + capability check</b> — detect git; warn if absent (commits/undo disabled).</li>
+        <li><b>Dir setup</b> — <code>plan/state</code>, <code>plan/docs</code>, etc.</li>
+        <li><b>Dashboard launch</b> — start the server (<code>--no-open</code>), open the board via the foreground helper.</li>
+        <li><b>Worktree decision</b> (G+F) — isolate in a git worktree for large builds.</li>
+        <li><b>Foreground vs background + budget cap</b> (G+F).</li>
+      </ol>
+      <h3>Stages 1–3 — docs → plan → build loop</h3>
+      <ol class="steps">
+        <li><b>Bring-your-own-docs gate</b> — use provided docs, else run the interview (Phases A–D) — all on the dashboard.</li>
+        <li><b>Plan + global DAG + doc-quality gate</b> — publish the <code>dag</code> (animated Plan tab), get explicit approval on the board.</li>
+        <li><b>Wireframe loop</b> (UI only) — throwaway <code>demo/index.html</code>, Approve / Suggest on the board.</li>
+        <li><b>Scaffold the toolchain</b> — working build/test before any TDD agent runs.</li>
+        <li><b>One global scheduler run</b> — architect → tdd → impl (parallel) → milestone gate (integration + lint) → two-stage review → commit, all as DAG nodes with model-tiered agents.</li>
+        <li><b>Phase 9 — finishing</b> — final verification, cleanup, BUILD-SUMMARY, final commit, worktree merge, completion message; distil lessons.</li>
+      </ol>
+    </section>
+
+    <section id="grow-flow">
+      <div class="eyebrow">Flow</div>
+      <h2>GROW flow (agentic-worker)</h2>
+      <div class="stagebar">
+        <span class="s">domain detect</span><span class="ar">→</span>
+        <span class="s">docs gate (HANDOFF)</span><span class="ar">→</span>
+        <span class="s">decompose</span><span class="ar">→</span>
+        <span class="s k">specialists ‖</span><span class="ar">→</span>
+        <span class="s">review gate</span><span class="ar">→</span>
+        <span class="s">merge</span><span class="ar">→</span>
+        <span class="s">showcase</span>
+      </div>
+      <ol class="steps">
+        <li><b>Domain detection</b> — classify into research / analysis / content / marketing / sales / strategy / … (drives which specialists + review criteria apply).</li>
+        <li><b>Docs gate</b> — under the suite, <code>HANDOFF.json</code> is the product brief; re-interview is skipped.</li>
+        <li><b>Decompose</b> — coordinator builds a task DAG (one deliverable per task) with a registry-driven agent + scheduler role per task.</li>
+        <li><b>Specialist fan-out</b> — parallel agents, each routed to a scored persona from the 192-registry (scoped loading); model-tiered.</li>
+        <li><b>Review gate</b> — high-stakes tasks auto-insert a review node; coherence checked across tasks.</li>
+        <li><b>Merge + showcase</b> — combine into <code>grow/outputs/</code>; generate + auto-open <code>showcase.html</code>.</li>
+      </ol>
     </section>
 
     <section id="preflight">
