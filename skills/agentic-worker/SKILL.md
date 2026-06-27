@@ -28,7 +28,7 @@ Runs in-session under Claude Code. No API key. No separate service. Uses your su
 
 8. **CARD-BEFORE-OP.** Write `agents.json` with `status: "working"` for an agent BEFORE spawning it. No silent gaps on the dashboard. Long operations (domain detection, chromadb init, large merges) get a card BEFORE running.
 
-9. **Dashboard-primary interaction.** All user questions and approvals go to the dashboard FIRST (write prompt → block on `wait-answer.mjs` → fall back to CLI on timeout). Never call CLI first while the dashboard is live.
+9. **Dashboard-primary interaction.** All user questions and approvals go to the dashboard FIRST via ONE Bash call: `node plan/dashboard/ask-dashboard.mjs --id … --question … [--options "a,b"] --timeout 600` (Bash `timeout: 600000`). It writes the prompt card AND blocks for the answer — so the modal always appears. Fall back to `AskUserQuestion` ONLY on its non-zero exit. Never call the CLI first while the dashboard is live.
 
 10. **Parse done-signals as JSON.** Every subagent returns a JSON done-signal. Retry once with "Reply with raw JSON only." if parsing fails. Two failures = blocked.
 
@@ -167,7 +167,7 @@ Clamp: `min(MAX_CONCURRENT, 16)`.
 }
 ```
 
-**Plan approval via dashboard:** write `prompt { id: "approve-plan", options: ["Approve", "Change scope"], openPlan: true, answered: false }` to `agents.json` FIRST (this pops the modal on the board — never skip it), then block on `node plan/dashboard/wait-answer.mjs approve-plan 600` **with Bash `timeout: 600000`** (the 120000ms default kills the wait at 2 min and false-falls back to the CLI). Never build without approval.
+**Plan approval via dashboard:** ONE Bash call (Bash `timeout: 600000`): `node plan/dashboard/ask-dashboard.mjs --id approve-plan --title "Approve the plan?" --question "Open the Plan tab to review the flow. Start?" --options "Approve,Change scope" --open-plan --timeout 600`. It pops the modal AND waits — never hand-write the card or skip it. Fall back to `AskUserQuestion` only on its non-zero exit. Never build without approval.
 
 Mark `plan` card `done`.
 
@@ -264,10 +264,9 @@ Update `progress.pct` and `progress.step` at every sub-phase within `plan` and `
 ## Dashboard interaction (identical to agentic-app-builder)
 
 **Asking questions / approvals:**
-1. Write `prompt` object to `agents.json` (id, title, question, options, answered: false) — ALWAYS do this first, every gate; it is what pops the modal on the board. Skipping it = silent dashboard (the reported bug).
-2. Block: `node plan/dashboard/wait-answer.mjs {id} {timeout_seconds}` — **pass the Bash tool `timeout` ≥ `{timeout_seconds}`×1000 ms** (e.g. `600` → `timeout: 600000`). The Bash default is 120000ms, which kills the wait at 2 min and false-triggers the CLI fallback.
-3. Exit 0 → use stdout value, set `answered: true`
-4. Exit 2 (timeout) or error → fall back to `AskUserQuestion` CLI
+1. **One Bash call** writes the card AND waits: `node plan/dashboard/ask-dashboard.mjs --id {id} --title "{t}" --question "{q}" [--options "a,b"] [--open-plan] [--open-url {url}] --timeout {sec}` — **pass the Bash tool `timeout` ≥ {sec}×1000 ms** (e.g. `600` → `timeout: 600000`; the 120000ms default kills the wait at 2 min). It pops the modal so you can no longer forget to write the card (the reported silent-dashboard bug).
+2. Exit 0 → the chosen value is on stdout (JSON); the helper already set `answered:true` (modal closes). Parse + proceed.
+3. Exit 2 (timeout) or error → ONLY THEN fall back to `AskUserQuestion` CLI. Never call the CLI before the helper returns non-zero.
 
 **Milestone undo/redo:** same `control.json` → `control` route mechanism as agentic-app-builder. Check at scheduler loop boundary. Undo requires `caps.git: true`.
 

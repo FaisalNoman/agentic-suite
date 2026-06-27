@@ -80,21 +80,23 @@ epic = feature · story = task · subtask = implementation unit.
     STOP — that's Engine B. Default mode needs none.
 12. **MIRROR EVERY QUESTION TO THE DASHBOARD — dashboard is PRIMARY, CLI is the fallback.**
     Whenever you would ask the user anything during a run (bring-your-own-docs gate, interview Phase
-    A/B/C/D, doc-quality fixes, plan approval, wireframe approve/reject — ALL of them), do it on the
-    board FIRST. **You CANNOT run `AskUserQuestion` and `wait-answer.mjs` at the same time** (one tool
-    call at a time — if you call `AskUserQuestion`, the session blocks on the CLI and your dashboard
-    click is never read; that's the bug to avoid). So the order is STRICT:
-    a. write a `prompt` object into `agents.json` (`{id, title, question, plan?, options?, answered:false}`).
-       This write is cheap + non-blocking — **ALWAYS do it, every gate, before anything else.** The card
-       is what makes the modal pop on the board; skip it and the dashboard stays silent (the bug being reported).
-    b. **run `node plan/dashboard/wait-answer.mjs <id> 600` (Bash) — this blocking call IS the await.**
-       **You MUST pass the Bash tool `timeout: 600000`** — the default 120000ms kills the wait at 2 min,
-       which looks like a timeout and wrongly drops you to the CLI. Do NOT call `AskUserQuestion` yet.
-    c. **exit 0** → parse the value it printed on stdout, set `prompt.answered:true`, proceed. Done.
-    d. **exit 2 (timeout) or error** (dashboard closed / not used) → ONLY THEN call `AskUserQuestion`
-       in the CLI as the fallback, take that answer, set `prompt.answered:true`.
-    Never the reverse. The Approve/option buttons on the board only work because (b) is what's running.
-    (foreground only; in background/SURGICAL skip the board prompt and use `AskUserQuestion` directly.)
+    A/B/C/D, doc-quality fixes, plan approval, wireframe approve/reject — ALL of them), ask it on the
+    board with **ONE Bash call** to the bundled helper:
+    ```
+    node plan/dashboard/ask-dashboard.mjs --id <id> --title "<title>" --question "<q>" \
+         --options "Opt A,Opt B" [--open-plan] [--open-url <url>] --timeout 600
+    ```
+    The helper **writes the prompt card to `agents.json` AND blocks for the answer** in one shot — so the
+    modal ALWAYS pops on the board (you can no longer forget to write the card, which was the reported bug).
+    **You MUST pass the Bash tool `timeout: 600000`** — the default 120000ms kills the wait at 2 min and
+    forces a false CLI fallback. Then:
+    - **exit 0** → the chosen value is printed on stdout (JSON). Parse it and proceed. The helper already
+      marked the card answered (modal closes). Done.
+    - **exit 2 (timeout) or error** (dashboard closed / not used) → ONLY THEN call `AskUserQuestion` in the
+      CLI as the fallback. **Never call `AskUserQuestion` before the helper has returned non-zero** — you
+      can only run one tool call at a time, so asking on the CLI first means the board click is never read.
+    Omit `--options` for a free-text answer. (foreground only; in background/SURGICAL skip the board and
+    use `AskUserQuestion` directly.)
     **Unattended/CI runs** (`unattended:true`) skip BOTH the board prompt AND `AskUserQuestion` — every
     gate is auto-resolved by a deterministic default (auto-approve plan/wireframe; abort on a vague spec
     or a budget breach). See `references/unattended-mode.md`.
@@ -246,9 +248,10 @@ Right after `plan/docs/` exists, STOP and tell the user:
 > "I created `plan/docs/`. If you already have requirement documents (PRD, feature specs, user
 > stories, etc.), copy them into `plan/docs/` now. Have you added your own requirement files? (Yes / No)"
 
-Ask this via the **dashboard-first ASK protocol (rule 12)** — write the `prompt` (id, question, options
-`["Yes","No"]`) to `agents.json`, block on `node plan/dashboard/wait-answer.mjs <id> 600`, and fall back to
-`AskUserQuestion` ONLY on its non-zero exit. Do not call `AskUserQuestion` directly. Then:
+Ask this via the **dashboard-first ASK protocol (rule 12)** — one Bash call:
+`node plan/dashboard/ask-dashboard.mjs --id byo-docs --question "…" --options "Yes,No" --timeout 600`
+(Bash `timeout: 600000`). It writes the card AND waits. Fall back to `AskUserQuestion` ONLY on its non-zero
+exit. Do not call `AskUserQuestion` directly. Then:
 
 - **Yes →** list `plan/docs/` and check for real files (ignore `.gitkeep`, and ignore `TECH-STACK.md`
   / `ARCHITECTURE.md` which you may generate). Decide by what's actually there:
@@ -265,8 +268,9 @@ Either way you still do Phase C (tech stack), the doc-quality gate, and planning
 ### Interview (only when no usable docs were provided)
 
 > **Every question in this interview uses the dashboard-first ASK protocol (rule 12)** — for each crisp
-> choice, write a `prompt` to `agents.json`, block on `wait-answer.mjs`, and fall back to `AskUserQuestion`
-> ONLY on timeout/error. Never call `AskUserQuestion` directly while the dashboard is up (foreground runs).
+> choice, make ONE `node plan/dashboard/ask-dashboard.mjs --id … --question … --options …` call (Bash
+> `timeout: 600000`); it writes the card AND waits. Fall back to `AskUserQuestion` ONLY on its non-zero
+> exit. Never call `AskUserQuestion` directly while the dashboard is up (foreground runs).
 
 One phase at a time; reflect a summary back after each. Use the ASK protocol for crisp choices,
 open chat for gathering features.
@@ -357,11 +361,14 @@ approval, and make the FLOW visible two ways:
 2. The approval `prompt` is **just the question + options** (no flow in the modal). Phrase the question
    to point at the Plan tab, e.g. `"Open the Plan tab to review the build flow. Start building?"`.
    `prompt.plan` is optional and not shown in the modal — put the flow in the `dag` (Plan tab) instead.
-3. Approval is **dashboard-primary** (rule 12): write `prompt {id:"approve-plan", title, question,
-   options:["Approve","Change scope"], openPlan:true, answered:false}` to `agents.json` FIRST (this is
-   what pops the approval modal on the board — never skip it), then BLOCK on
-   `node plan/dashboard/wait-answer.mjs approve-plan 600` **with Bash `timeout: 600000`**; only on its
-   timeout/error fall back to `AskUserQuestion`. **Get explicit approval before any code.**
+3. Approval is **dashboard-primary** (rule 12) — ONE Bash call (Bash `timeout: 600000`):
+   ```
+   node plan/dashboard/ask-dashboard.mjs --id approve-plan --title "Approve the build plan?" \
+        --question "Open the Plan tab to review the build flow. Start building?" \
+        --options "Approve,Change scope" --open-plan --timeout 600
+   ```
+   It pops the approval modal (with an 🗺 Open Plan button) AND waits — never hand-write the card or skip
+   this. Only on its timeout/error fall back to `AskUserQuestion`. **Get explicit approval before any code.**
 
 ### Hierarchical threshold check (run after the global DAG is finalized)
 
@@ -651,36 +658,32 @@ flowchart and the swarm cards stay in sync as statuses flow. This replaces the o
 show the Plan tab when presenting the plan for approval.
 
 ### B. Asking questions / getting approval ON the dashboard (with CLI fallback)
-The page can collect answers and approvals. The flow (use it for the plan-approval gate, wireframe
-approve/reject, and any interview question you want on-screen):
+The page collects answers and approvals. Use it for the plan-approval gate, wireframe approve/reject, and
+every interview question. **One Bash call does everything** — it writes the prompt card AND blocks for the
+answer, so the modal always appears (you can no longer forget to write the card — the recurring "questions
+only on CLI / no approval popup" bug):
 
-1. **Write a `prompt` object** into `agents.json`:
-   ```json
-   "prompt": { "id": "approve-plan", "title": "Approve the build plan?",
-     "question": "Review the DAG in the Plan tab. Start building?",
-     "plan": "<the plan summary text / DAG outline>",
-     "options": ["Approve", "Change scope"], "openPlan": true, "answered": false }
-   ```
-   (Omit `options` → the page shows a free-text box. `plan` is optional pre-formatted text.)
-   **Side-action buttons (do NOT submit an answer — open something for review, card stays open):**
-   - `"openPlan": true` → adds an **🗺 Open Plan** button that switches the dashboard to the Plan tab.
-     Use it on the **plan-approval** prompt so the user can review the flow then click Approve/Change.
-   - `"openUrl": "<file-or-http url>"` → adds an **🖼 Open Page** button that opens that URL in the OS
-     default browser (via the server's `/open` route — works for `file://` wireframes on Windows). Use it
-     on the **wireframe-approval** prompt, e.g. `"openUrl": "file:///.../plan/wireframe/index.html"`.
-2. **Block for the dashboard answer FIRST** with the bundled bridge — run as a Bash call (this blocking
-   IS your await): `node plan/dashboard/wait-answer.mjs approve-plan 600` **with the Bash tool
-   `timeout: 600000`** (the 120000ms default would kill the wait at 2 min and false-trigger the CLI fallback).
-   It prints the chosen value (JSON) on stdout and exits 0 when the user clicks the button; exits 2 on timeout.
-   **Do NOT call `AskUserQuestion` while this is running** — you can only run one tool call at a time, so
-   calling the CLI question instead would block the session on the CLI and the button click would never
-   be read. That is exactly the "Approve does nothing" bug.
-3. **CLI is the FALLBACK, used only after (2) returns non-zero.** If `wait-answer.mjs` exits 2 (timeout)
-   or errors (browser closed / dashboard not used), THEN — and only then — call `AskUserQuestion` in the
-   CLI and use that answer. On exit 0, you already have the answer; do not ask again on the CLI.
-4. After resolving (either path), set `prompt.answered: true` (or drop the `prompt`) so the panel closes.
+```
+node plan/dashboard/ask-dashboard.mjs --id approve-plan --title "Approve the build plan?" \
+     --question "Open the Plan tab to review the flow. Start building?" \
+     --options "Approve,Change scope" --open-plan --timeout 600
+```
+Run it as a **Bash call with `timeout: 600000`** (the 120000ms default kills the wait at 2 min and
+false-triggers the CLI fallback). Flags:
+- `--options "a,b,c"` → option buttons. Omit → free-text box.
+- `--open-plan` → adds an **🗺 Open Plan** button (switch to Plan tab to review the DAG) — use on plan approval.
+- `--open-url "<file|http url>"` → adds an **🖼 Open Page** button (opens via the server's `/open` route —
+  works for `file://` wireframes on Windows) — use on wireframe approval.
 
-The server persists clicks to `plan/state/answers.json`; `wait-answer.mjs` polls it. Localhost only.
+Behavior:
+- **exit 0** → the chosen value is printed on stdout (JSON); the helper already set `prompt.answered:true`
+  so the modal closes. Parse the value and proceed.
+- **exit 2 (timeout) / error** (browser closed / dashboard not used) → ONLY THEN call `AskUserQuestion` in
+  the CLI. **Never call `AskUserQuestion` before the helper returns non-zero** — one tool call at a time, so
+  asking on the CLI first means the board click is never read (the "Approve does nothing" bug).
+
+The server persists clicks to `plan/state/answers.json`; the helper polls it. Localhost only.
+(Low-level `wait-answer.mjs` still ships for advanced/manual use, but `ask-dashboard.mjs` is the one to call.)
 SURGICAL/background runs: skip dashboard prompts, use CLI only.
 
 ### C. Live test progress (the "Tests" tab) — two sources, one panel
