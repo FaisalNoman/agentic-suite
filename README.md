@@ -55,6 +55,69 @@ growth deliverables against the real product — then opens the showcase.
 
 ---
 
+## Routing — which engine runs
+
+At Stage 0 the conductor classifies intent and routes to one of three paths. The rule of thumb:
+
+- The request produces or edits **runnable code** anywhere → **BUILD** (agentic-app-builder) participates.
+- The request produces a **document, dataset, or strategy** deliverable → **GROW** (agentic-worker) participates.
+- **Both** → the **BUILD → GROW** chain (build first, then grow against the real product).
+- **Neither is clear** → the conductor asks you once (on the dashboard) which you intended.
+
+A marketing-flavoured noun (SEO, sales, brand) does **not** force GROW if the deliverable is software —
+e.g. *"an SEO **tool**"* is a BUILD. Conversely, *"landing-page **copy**"* is GROW even though a landing
+page is code.
+
+### Common requests
+
+| Prompt | Runs |
+|---|---|
+| "Build me a todo web app" / "Build a CLI that converts CSV→JSON" | **builder only** |
+| "Fix this login bug" / "this test is failing" | **builder only** (surgical) |
+| "Add dark mode" / "refactor the API" / "migrate React→Vue" | **builder only** (feature) |
+| "Build a landing page / website" | **builder only** (it is code) |
+| "Research and compare 5 CRM tools (features + price)" | **worker only** |
+| "Write an SEO strategy" / "produce a competitive-intelligence report" | **worker only** |
+| "Write landing-page copy + 3 launch tweets" | **worker only** (copy ≠ building the page) |
+| "Analyze this sales dataset and recommend actions" | **worker only** |
+| "Build a photo manager, then write its SEO + go-to-market plan" | **builder → worker** |
+| "Create a SaaS dashboard and a sales deck for it" | **builder → worker** |
+| "Ship a habit tracker and market it" | **builder → worker** |
+
+### Edge cases & tie-breakers
+
+| Prompt | Runs | Why |
+|---|---|---|
+| "Redesign my landing page" | **builder** (feature) | changing UI code, not writing copy |
+| "Improve my site's SEO" | **conductor asks** | *technical* SEO (meta/sitemap/perf in the codebase) = builder; SEO *strategy doc* = worker |
+| "Audit my codebase for security bugs" | **builder** (diagnose) | code analysis, not business research |
+| "Audit my brand's market positioning" | **worker** | business research |
+| "Build a tool that generates SEO reports" | **builder only** | it is a *tool* — the SEO flavour does not make it grow |
+| "Fix my SEO rankings" (no codebase) | **worker** | strategy/content, no code to change |
+| "Scrape competitor prices" | **conductor asks** | a reusable *scraper tool* → builder; the *price data/report* → worker |
+| "Translate my app UI to Spanish" | **builder** (feature) | i18n code change |
+| "Write API docs for my service" | **borderline** | in-repo README → builder; standalone docs portal → worker |
+| "Build a frontend and a backend API" | **builder only** | two code targets, one parallel build run |
+| "Build a blog, then write 10 SEO articles for it" | **builder → worker** | build app + bulk content |
+| "Build a dashboard that displays a competitor analysis" | **builder → worker** | build the app + produce the analysis content |
+| "Give me feature ideas for my app" | **worker** | ideation/research, no code |
+| "Build X" (no detail) | **builder**, brainstorming first | vague → a brainstorming gate runs before building |
+
+**Two things people miss:**
+
+1. **Pre-build research is not GROW.** *"Research the best stack, then build the app"* → **builder only** —
+   research that *informs* the build is handled inside builder's own interview/planning. GROW is
+   *post-product* growth and never runs before BUILD.
+2. **Order is hard-wired BUILD → GROW** (growth depends on the product existing). A
+   *research-then-build-from-findings* request is not modelled as a chain; run `agentic-worker` for the
+   research first, then feed it into a separate `agentic-app-builder` run.
+
+### Invoking directly
+`/agentic-suite` classifies and routes any of the above (and chains when mixed). For a known single intent
+you can skip the classify hop: build-only → `agentic-app-builder`; grow-only → `agentic-worker`.
+
+---
+
 ## Features
 
 **BUILD (agentic-app-builder)**
