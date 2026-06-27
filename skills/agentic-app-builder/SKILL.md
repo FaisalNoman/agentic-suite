@@ -539,6 +539,13 @@ Phase ordering (interfaces → tests → impl) and gate ordering are both encode
 planning time, so the scheduler enforces them automatically — no separate wave/sprint system.
 Bounded fix loops (impl ≤10, gate fix ≤5, rule 6) run inside each agent and are unchanged.
 
+**Inject per-language coding rules (every `tdd`/`impl`/`review` agent).** When assembling each code agent's
+prompt, resolve the task's language from its `writes` extension and prepend the matching
+`references/rules/<lang>.md` as a **CODING RULES** block (see `references/rules/README.md` for the
+extension→file map; fall back to `generic.md`). Load ONLY that one file — scoped, like the design system.
+UI tasks get both `<lang>.md` and `DESIGN-SYSTEM.md`. The `review` agent checks the diff against the same
+`<lang>.md`. This is content-only (no hooks) and raises code quality without bloating context.
+
 Results are synthesized incrementally as each agent completes — see "Incremental
 Synthesis Protocol" in `references/phases.md`. The orchestrator never holds more
 than one agent's output in active context at once.
@@ -796,6 +803,7 @@ per task, each gate, each commit. On restart, read it, print progress, resume.
 - `references/scheduler.md` — the GLOBAL dependency-graph scheduler + milestone-gate nodes (the heart of this skill).
 - `references/agent-contracts.md` — JSON output schemas for each agent type.
 - `references/systematic-debugging.md` — **load for every fix agent (Phase 7)**. Four-phase root cause protocol. Replaces guess-and-check.
+- `references/rules/` — **load the ONE matching `<lang>.md` per code agent (Stage 3 dispatch)**. Compact per-language coding standards (ts/js/py/go/rust/java/csharp + generic); injected scoped, checked by review.
 - `references/code-review-protocol.md` — **load for Phase 8 review dispatch**. Two-stage spec compliance → quality review. Contains impl agent self-review checklist.
 - `references/branch-lifecycle.md` — **load at Stage 0 (worktree decision) and Phase 9 (finishing)**. Git worktree setup + build completion protocol.
 - `references/modes.md` — **load at Stage 0 Step 1 (mode detection) — read before doing anything else**. Defines GREENFIELD / FEATURE / SURGICAL modes, detection logic, per-mode phase gates, and SURGICAL/FEATURE stage prompts.
