@@ -781,7 +781,9 @@ function normalizePw(st){ const rows=Object.values(st.tests||{}).map(t=>({file:t
   return {status:st.status,total:st.total||0,passed:st.passed||0,failed:st.failed||0,skipped:st.skipped||0,running:st.running||0,rows}; }
 function normalizeUnit(t){ const rows=[];
   (t.suites||[]).forEach(su=>{ if(Array.isArray(su.cases)&&su.cases.length)su.cases.forEach(c=>rows.push({file:su.file||"?",title:c.title,status:c.status,duration:c.duration}));
-    else rows.push({file:su.file||"?",title:su.file||"suite",status:su.status||(su.failed?"failed":"passed"),duration:su.duration}); });
+    else { // no per-case data — show a counts summary, NOT the filename again (the file header already shows it)
+      const summary=[`${su.passed||0} passed`]; if(su.failed)summary.push(`${su.failed} failed`); if(su.skipped)summary.push(`${su.skipped} skipped`);
+      rows.push({file:su.file||"?",title:summary.join(" · ")+(su.total?` (of ${su.total})`:""),status:su.status||(su.failed?"failed":"passed"),duration:su.duration}); } });
   return {status:t.status||"idle",total:t.total||0,passed:t.passed||0,failed:t.failed||0,skipped:t.skipped||0,running:t.running||0,rows}; }
 function paintTests(n){
   const ss=$("t-stat"); ss.textContent=n.status||"idle"; ss.className="tstat "+(n.status||"idle");
