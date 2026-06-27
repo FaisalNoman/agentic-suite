@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>agentic-suite — social card</title>
+<style>
+  :root{
+    --bg:#0b0e14; --bg2:#11161f; --line:#1f2733; --line2:#2a3441;
+    --ink:#e6edf3; --ink2:#aeb9c7; --dim:#6b7787;
+    --accent:#7aa2ff; --accent2:#9b8cff; --amber:#f0c674; --green:#22c55e;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#05070b;display:grid;place-items:center;min-height:100vh;font-family:var(--sans)}
+  .hint{position:fixed;top:10px;left:0;right:0;text-align:center;color:#5b6776;font:12px/1.4 var(--mono)}
+  /* ── the exported card: exactly 1200×630 ── */
+  .card{position:relative;width:1200px;height:630px;overflow:hidden;border-radius:18px;
+    background:
+      radial-gradient(120% 90% at 18% 12%, rgba(122,162,255,.10), transparent 55%),
+      radial-gradient(90% 80% at 92% 95%, rgba(155,140,255,.08), transparent 55%),
+      linear-gradient(160deg,var(--bg) 0%, var(--bg2) 100%);
+    color:var(--ink);box-shadow:0 40px 120px -40px #000;}
+  /* dot grid */
+  .card::before{content:"";position:absolute;inset:0;
+    background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:26px 26px;mask:linear-gradient(120deg,#000 30%,transparent 78%);opacity:.7}
+  /* micro-noise */
+  .card::after{content:"";position:absolute;inset:0;opacity:.04;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
+
+  .stage{position:absolute;inset:0;display:grid;grid-template-columns:1fr 470px}
+
+  /* ── left: the DAG visual ── */
+  .viz{position:relative;padding:54px 0 54px 64px}
+  .viz .lbl{font:600 12px/1 var(--mono);letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
+  svg.dag{position:absolute;left:40px;top:120px;width:660px;height:420px;overflow:visible}
+  .node rect{rx:11;ry:11}
+  .n-chip{fill:var(--bg2);stroke:var(--line2);stroke-width:1.4}
+  .n-work .n-chip{stroke:var(--amber);filter:drop-shadow(0 0 10px rgba(240,198,116,.35))}
+  .n-done .n-chip{stroke:var(--green)}
+  .n-accent .n-chip{stroke:var(--accent);filter:drop-shadow(0 0 14px rgba(122,162,255,.45))}
+  .n-label{font:600 13px var(--sans);fill:var(--ink2)}
+  .n-work .n-label{fill:var(--ink)} .n-accent .n-label{fill:#dfe7ff}
+  .dot{r:3.2} .dot.work{fill:var(--amber)} .dot.done{fill:var(--green)} .dot.idle{fill:var(--dim)} .dot.acc{fill:var(--accent)}
+  .edge{stroke:var(--line2);stroke-width:1.8;fill:none}
+  .edge.flow{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:5 7}
+  .clbl{font:600 10.5px var(--mono);letter-spacing:2px;text-transform:uppercase;fill:var(--dim)}
+  .bigarrow{font:700 15px var(--mono);fill:var(--accent);letter-spacing:1px}
+
+  /* ── right: wordmark safe area ── */
+  .meta{align-self:center;padding:0 64px 0 30px}
+  .brandrow{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .glyph{width:30px;height:30px;color:var(--accent)}
+  .kicker{font:600 12px/1 var(--mono);letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
+  h1{font-size:62px;line-height:.98;font-weight:600;letter-spacing:-1.5px;margin:2px 0 0}
+  h1 .arrow{color:var(--accent)}
+  .tag{margin-top:18px;font-size:20px;line-height:1.45;color:var(--ink2);font-weight:400;max-width:380px}
+  .tag b{color:var(--ink);font-weight:600}
+  .pills{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap}
+  .pill{font:600 12.5px var(--mono);letter-spacing:.3px;padding:7px 13px;border-radius:999px;
+    border:1px solid var(--line2);color:var(--ink2)}
+  .pill.accent{border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:#dfe7ff;
+    background:color-mix(in srgb,var(--accent) 12%,transparent)}
+  .legend{position:absolute;left:64px;bottom:40px;display:flex;gap:20px;font:600 11px var(--mono);color:var(--dim)}
+  .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+</style>
+</head>
+<body>
+<div class="hint">og-card.html — screenshot the 1200×630 card below for the social/OG image</div>
+
+<div class="card" id="card">
+  <div class="stage">
+    <!-- LEFT: DAG -->
+    <div class="viz">
+      <div class="lbl" style="position:absolute;left:64px;top:54px">Autonomous SDLC swarm</div>
+      <svg class="dag" viewBox="0 0 660 420">
+        <defs>
+          <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#2a3441"/></marker>
+          <marker id="arrA" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#7aa2ff"/></marker>
+        </defs>
+
+        <!-- cluster labels -->
+        <text class="clbl" x="0" y="14">BUILD</text>
+        <text class="clbl" x="430" y="14">GROW</text>
+
+        <!-- edges BUILD -->
+        <path class="edge" d="M150,60 C200,60 200,150 250,150" marker-end="url(#arr)"/>
+        <path class="edge flow" d="M150,150 C205,150 205,150 250,150" marker-end="url(#arrA)"/>
+        <path class="edge" d="M150,240 C200,240 205,160 250,152" marker-end="url(#arr)"/>
+        <path class="edge" d="M362,150 C395,150 395,150 430,90" marker-end="url(#arr)"/>
+        <path class="edge" d="M362,150 C395,150 395,150 430,210" marker-end="url(#arr)"/>
+        <!-- BUILD → GROW spine -->
+        <path class="edge flow" d="M362,150 C400,150 400,150 430,150" marker-end="url(#arrA)"/>
+        <text class="bigarrow" x="372" y="138">→</text>
+        <!-- edges GROW -->
+        <path class="edge" d="M560,90 C590,90 590,150 560,150" marker-end="url(#arr)" opacity="0"/>
+
+        <!-- BUILD nodes -->
+        <g class="node n-idle"   transform="translate(0,42)"><rect class="n-chip" width="150" height="36"/><circle class="dot idle" cx="16" cy="18"/><text class="n-label" x="30" y="22">architect</text></g>
+        <g class="node n-work"   transform="translate(0,132)"><rect class="n-chip" width="150" height="36"/><circle class="dot work" cx="16" cy="18"/><text class="n-label" x="30" y="22">tdd · impl</text></g>
+        <g class="node n-idle"   transform="translate(0,222)"><rect class="n-chip" width="150" height="36"/><circle class="dot idle" cx="16" cy="18"/><text class="n-label" x="30" y="22">review</text></g>
+        <g class="node n-accent" transform="translate(250,132)"><rect class="n-chip" width="112" height="36"/><circle class="dot acc" cx="16" cy="18"/><text class="n-label" x="30" y="22">gate ✓</text></g>
+
+        <!-- GROW nodes -->
+        <g class="node n-done" transform="translate(430,72)"><rect class="n-chip" width="150" height="36"/><circle class="dot done" cx="16" cy="18"/><text class="n-label" x="30" y="22">SEO</text></g>
+        <g class="node n-work" transform="translate(430,132)"><rect class="n-chip" width="150" height="36"/><circle class="dot work" cx="16" cy="18"/><text class="n-label" x="30" y="22">content</text></g>
+        <g class="node n-idle" transform="translate(430,192)"><rect class="n-chip" width="150" height="36"/><circle class="dot idle" cx="16" cy="18"/><text class="n-label" x="30" y="22">sales deck</text></g>
+      </svg>
+
+      <div class="legend">
+        <span><i style="background:var(--amber)"></i>working</span>
+        <span><i style="background:var(--green)"></i>done</span>
+        <span><i style="background:var(--accent)"></i>gate</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: wordmark -->
+    <div class="meta">
+      <div class="brandrow">
+        <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="5" r="2.4"/><circle cx="5" cy="19" r="2.4"/><circle cx="19" cy="19" r="2.4"/>
+          <path d="M12 7.4v4.6M10.4 13.2 6.6 16.8M13.6 13.2l3.8 3.6"/></svg>
+        <span class="kicker">in-session · no API key</span>
+      </div>
+      <h1>agentic<span class="arrow">·</span>suite</h1>
+      <p class="tag"><b>BUILD → GROW.</b> One conductor builds &amp; ships the product, then grows it — SEO, marketing, sales — grounded in what was actually built.</p>
+      <div class="pills">
+        <span class="pill accent">parallel agent swarm</span>
+        <span class="pill">TDD + review</span>
+        <span class="pill">live dashboard</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
