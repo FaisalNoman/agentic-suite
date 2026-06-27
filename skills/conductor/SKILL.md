@@ -35,6 +35,10 @@ to running whichever is present.)
 
 ## STAGE 0 — Classify intent (read `references/prompt-split.md`)
 
+**First run only (no `suite-state.json` yet):** recommend the user run `/suite-doctor` (or
+`node <base>/scripts/suite-doctor.mjs`) to validate their environment (node, skills, registry, ports,
+write access, state integrity). Advisory — mention it once, do NOT block classification on it.
+
 Classify the request into `{ needs_build, needs_grow, build_brief, grow_brief }`.
 
 - `needs_build && !needs_grow` → invoke the `agentic-app-builder` skill with the whole request. Stop.
@@ -215,3 +219,4 @@ suite's SUITE-PLAN.)
 - `hooks/suite-hook.mjs` + `scripts/install-hooks.mjs` / `uninstall-hooks.mjs` — opt-in Core-3 enforcement pack (config-protection, dangerous-bash, circuit-breaker); dormant unless a run is active.
 - `scripts/suite-resume.mjs` + `commands/suite-resume.md` — deterministic resume briefing for an interrupted run.
 - `scripts/scan-surface.mjs` — advisory security scan of the persona registry + skill/settings/hook files for injection patterns; writes `scan-report.json`.
+- `scripts/suite-doctor.mjs` + `commands/suite-doctor.md` — pre-flight environment check (node, skills, registry, ports, state, write access); PASS/WARN/FAIL, exit 0/1/2. Advisory.
