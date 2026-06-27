@@ -14,6 +14,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const handler = process.argv[2] || "";
 
@@ -135,8 +136,98 @@ function circuitBreaker(input, stateDir) {
   allow();
 }
 
+// ── v2 handlers ──
+
+// Protect the harness's own guards + git from agent self-sabotage. Does NOT
+// touch plan/state/*.json (the orchestrator legitimately rewrites those) — it
+// blocks edits to .git internals, the hook config, and the hook/dashboard infra
+// so a subagent can't silence enforcement or corrupt the repo mid-run.
+const PROTECTED = [
+  /(^|[\\/])\.git[\\/]/i,
+  /[\\/]\.claude[\\/]settings\.json$/i,
+  /[\\/]hooks[\\/]suite-hook\.mjs$/i,
+  /[\\/]plan[\\/]dashboard[\\/][\w.-]+\.mjs$/i,
+];
+function protectState(input, stateDir) {
+  if (input.hook_event_name && input.hook_event_name !== "PreToolUse") allow();
+  if (!/^(Edit|Write|MultiEdit)$/.test(input.tool_name || "")) allow();
+  const fp = (input.tool_input && (input.tool_input.file_path || input.tool_input.path)) || "";
+  if (!fp) allow();
+  if (marker(stateDir, ".allow-danger")) allow();
+  if (PROTECTED.some((re) => re.test(fp))) {
+    block(`[agentic-suite] protect-state: writing "${fp}" is blocked during a run — it is harness/git ` +
+      `infrastructure (the hooks, dashboard, .claude/settings.json, or .git). Editing it could disable the ` +
+      `guards or corrupt the repo. If truly intended, create "${path.join(stateDir, ".allow-danger")}" and retry.`);
+  }
+  allow();
+}
+
+// Persist real token spend to a JSONL ledger and hard-alert on budget breach.
+// Throttled (≈30s) so most PostToolUse calls cost only a cheap mtime read; the
+// expensive transcript scan reuses the dashboard's own token-report.mjs.
+async function costPersist(input, stateDir) {
+  if (input.hook_event_name && input.hook_event_name !== "PostToolUse") allow();
+  const telDir = path.join(stateDir, "telemetry");
+  const costState = path.join(telDir, "cost-state.json");
+  let last = 0;
+  try { last = JSON.parse(fs.readFileSync(costState, "utf8")).at || 0; } catch {}
+  if (Date.now() - last < 30000) allow(); // throttle
+  let cwd = null, startedAt = null, cap = null;
+  try { const a = JSON.parse(fs.readFileSync(path.join(stateDir, "agents.json"), "utf8")); cwd = a.cwd || a.sessionRoot; startedAt = a.startedAt; } catch {}
+  try { const fw = JSON.parse(fs.readFileSync(path.join(stateDir, "framework-state.json"), "utf8")); cap = fw.budget && fw.budget.max_tokens; } catch {}
+  if (!cwd) allow();
+  let m = null;
+  try {
+    const tr = path.resolve(stateDir, "..", "dashboard", "token-report.mjs");
+    const mod = await import(pathToFileURL(tr).href);
+    m = mod.computeTokens(cwd, startedAt);
+  } catch { allow(); }
+  if (!m || !(m.total > 0)) allow();
+  try {
+    fs.mkdirSync(telDir, { recursive: true });
+    fs.appendFileSync(path.join(telDir, "session-costs.jsonl"), JSON.stringify({ at: new Date().toISOString(), total: m.total, in: m.in, out: m.out }) + "\n");
+    fs.writeFileSync(costState, JSON.stringify({ at: Date.now(), total: m.total }));
+  } catch {}
+  if (cap && m.total > cap) {
+    block(`[agentic-suite] cost-persist: token budget exceeded — ${m.total} > cap ${cap}. ` +
+      `Pause and confirm with the user before spending more (budget.md: pause at 100%).`);
+  }
+  allow();
+}
+
+// SessionStart: if a run is mid-flight, inject a one-line resume nudge into context.
+function stateVerify(input, stateDir) {
+  let fw = {};
+  try { fw = JSON.parse(fs.readFileSync(path.join(stateDir, "framework-state.json"), "utf8")); } catch { allow(); }
+  const ms = fw.milestones && typeof fw.milestones === "object" ? fw.milestones : {};
+  const ids = Object.keys(ms);
+  const pending = ids.filter((k) => ms[k] && ms[k].status !== "done");
+  process.stdout.write(`[agentic-suite] A build is in progress (stage=${fw.stage || "?"}` +
+    (ids.length ? `, ${ids.length - pending.length}/${ids.length} milestones done` : "") +
+    `). Resume it — read framework-state.json and continue from where it stopped; do not restart. ` +
+    `Run /suite-resume or node scripts/suite-resume.mjs for the full briefing.`);
+  process.exit(0);
+}
+
+// PreCompact: snapshot framework-state before context compaction so resume
+// survives even if a write was mid-flight when compaction fired.
+function precompactSnapshot(input, stateDir) {
+  try {
+    const src = path.join(stateDir, "framework-state.json");
+    if (!fs.existsSync(src)) allow();
+    const snapDir = path.join(stateDir, "snapshots");
+    fs.mkdirSync(snapDir, { recursive: true });
+    const ts = new Date().toISOString().replace(/[:.]/g, "-");
+    fs.copyFileSync(src, path.join(snapDir, `pre-compact-${ts}.json`));
+  } catch {}
+  allow();
+}
+
 // ── route ──
-const HANDLERS = { "config-protection": configProtection, "dangerous-bash": dangerousBash, "circuit-breaker": circuitBreaker };
+const HANDLERS = {
+  "config-protection": configProtection, "dangerous-bash": dangerousBash, "circuit-breaker": circuitBreaker,
+  "protect-state": protectState, "cost-persist": costPersist, "state-verify": stateVerify, "precompact-snapshot": precompactSnapshot,
+};
 
 (async () => {
   const fn = HANDLERS[handler];
@@ -145,5 +236,5 @@ const HANDLERS = { "config-protection": configProtection, "dangerous-bash": dang
   const cwd = input.cwd || process.cwd();
   const run = findRun(cwd);
   if (!run) allow();            // dormant — no active suite run
-  try { fn(input, run.stateDir); } catch { allow(); } // never let a hook bug break the session
+  try { await fn(input, run.stateDir); } catch { allow(); } // never let a hook bug break the session
 })();

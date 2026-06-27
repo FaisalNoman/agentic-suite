@@ -165,15 +165,23 @@ of every GROW deliverable; surface that path prominently as the one-stop view of
 ## Optional hardening (hooks) — opt-in, off by default
 
 The suite runs hook-free by default (zero-config, in-session). For a long or unattended run, the user can
-install an **opt-in Core-3 enforcement pack** that turns three prose rules into deterministic guards the
-swarm (incl. subagents) cannot skip:
+install an **opt-in enforcement pack** that turns prose rules into deterministic guards the swarm (incl.
+subagents) cannot skip:
 
 - **config-protection** (PreToolUse) — blocks edits to test/lint/format/tsconfig configs mid-run, so an
   agent fixes the code to go green instead of weakening the tooling.
+- **protect-state** (PreToolUse) — blocks edits to `.git/`, `.claude/settings.json`, and the hook/dashboard
+  infra so a subagent can't silence the guards or corrupt the repo (does NOT touch `plan/state/*.json`,
+  which the orchestrator owns).
 - **dangerous-bash** (PreToolUse) — blocks `rm -rf` on absolute/home paths, `git push --force`,
   `git reset --hard`, `curl|sh`, etc. during a run.
 - **circuit-breaker** (PostToolUse) — trips after 5 consecutive tool failures, enforcing the "bounded
   loops" rule.
+- **cost-persist** (PostToolUse) — appends real token spend to `plan/state/telemetry/session-costs.jsonl`
+  (throttled) and hard-alerts when `framework-state.budget.max_tokens` is exceeded.
+- **state-verify** (SessionStart) — if a run is mid-flight, injects a resume nudge into context.
+- **precompact-snapshot** (PreCompact) — snapshots `framework-state.json` before compaction so resume
+  survives a mid-write compaction.
 
 Install (project-scoped, reversible): `node <conductor-base>/scripts/install-hooks.mjs` (add `--scope user`
 for global). The hooks are **dormant unless a suite run is active** in the cwd, and escape hatches exist

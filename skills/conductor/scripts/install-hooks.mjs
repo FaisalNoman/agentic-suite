@@ -37,10 +37,18 @@ const isOurs = (h) => h && h.hooks && h.hooks.some((x) => typeof x.command === "
 const WANT = {
   PreToolUse: [
     { matcher: "Edit|Write|MultiEdit", hooks: [{ type: "command", command: cmd("config-protection") }] },
+    { matcher: "Edit|Write|MultiEdit", hooks: [{ type: "command", command: cmd("protect-state") }] },
     { matcher: "Bash", hooks: [{ type: "command", command: cmd("dangerous-bash") }] },
   ],
   PostToolUse: [
     { matcher: "*", hooks: [{ type: "command", command: cmd("circuit-breaker") }] },
+    { matcher: "*", hooks: [{ type: "command", command: cmd("cost-persist") }] },
+  ],
+  SessionStart: [
+    { hooks: [{ type: "command", command: cmd("state-verify") }] },
+  ],
+  PreCompact: [
+    { hooks: [{ type: "command", command: cmd("precompact-snapshot") }] },
   ],
 };
 
@@ -63,7 +71,8 @@ if (printOnly) {
 fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
 fs.writeFileSync(settingsPath, out);
 console.log(`agentic-suite hooks installed → ${settingsPath}`);
-console.log(`  PreToolUse: config-protection (Edit/Write), dangerous-bash (Bash)`);
-console.log(`  PostToolUse: circuit-breaker (*)`);
+console.log(`  PreToolUse: config-protection, protect-state (Edit/Write), dangerous-bash (Bash)`);
+console.log(`  PostToolUse: circuit-breaker, cost-persist (*)`);
+console.log(`  SessionStart: state-verify   PreCompact: precompact-snapshot`);
 console.log(`  dispatcher: ${HOOK}`);
 console.log(`  dormant unless a suite run is active. Remove with: node uninstall-hooks.mjs --scope ${scope}`);
