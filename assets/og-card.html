@@ -62,8 +62,13 @@
     border:1px solid var(--line2);color:var(--ink2)}
   .pill.accent{border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:#dfe7ff;
     background:color-mix(in srgb,var(--accent) 12%,transparent)}
-  .legend{position:absolute;left:64px;bottom:40px;display:flex;gap:20px;font:600 11px var(--mono);color:var(--dim)}
+  .legend{position:absolute;left:64px;bottom:36px;display:flex;gap:20px;font:600 11px var(--mono);color:var(--dim)}
   .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+  .kpis{position:absolute;left:64px;bottom:74px;display:flex;gap:12px}
+  .kpi{min-width:96px;padding:9px 13px;border:1px solid var(--line2);border-radius:11px;background:rgba(17,22,31,.6);
+    display:flex;flex-direction:column;gap:3px}
+  .kpi .kv{font:700 20px var(--mono);line-height:1} .kpi .kv small{font-size:12px;opacity:.7}
+  .kpi .kk{font:600 9.5px var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
 </style>
 </head>
 <body>
@@ -110,10 +115,18 @@
         <g class="node n-idle" transform="translate(430,192)"><rect class="n-chip" width="150" height="36"/><circle class="dot idle" cx="16" cy="18"/><text class="n-label" x="30" y="22">sales deck</text></g>
       </svg>
 
+      <!-- live-dashboard cue: KPI chips + dual boards -->
+      <div class="kpis">
+        <div class="kpi"><span class="kv" style="color:var(--amber)">6</span><span class="kk">working</span></div>
+        <div class="kpi"><span class="kv" style="color:var(--green)">18</span><span class="kk">done</span></div>
+        <div class="kpi"><span class="kv" style="color:var(--ink)">94<small>%</small></span><span class="kk">passing</span></div>
+        <div class="kpi"><span class="kv" style="color:var(--accent)">live</span><span class="kk">:4317 → :4318</span></div>
+      </div>
       <div class="legend">
         <span><i style="background:var(--amber)"></i>working</span>
         <span><i style="background:var(--green)"></i>done</span>
         <span><i style="background:var(--accent)"></i>gate</span>
+        <span style="color:var(--dim)">live dashboards</span>
       </div>
     </div>
 
@@ -123,14 +136,15 @@
         <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="5" r="2.4"/><circle cx="5" cy="19" r="2.4"/><circle cx="19" cy="19" r="2.4"/>
           <path d="M12 7.4v4.6M10.4 13.2 6.6 16.8M13.6 13.2l3.8 3.6"/></svg>
-        <span class="kicker">in-session · no API key</span>
+        <span class="kicker">SDLC + GROW · in-session · no API key</span>
       </div>
       <h1>agentic<span class="arrow">·</span>suite</h1>
-      <p class="tag"><b>BUILD → GROW.</b> One conductor builds &amp; ships the product, then grows it — SEO, marketing, sales — grounded in what was actually built.</p>
+      <p class="tag"><b>An SDLC + GROW framework.</b> A parallel-agent swarm builds, tests &amp; ships the software — then grows it (SEO, marketing, sales) against the real product. <b>Live dashboards</b> the whole way.</p>
       <div class="pills">
-        <span class="pill accent">parallel agent swarm</span>
+        <span class="pill accent">SDLC → GROW</span>
+        <span class="pill">parallel agent swarm</span>
         <span class="pill">TDD + review</span>
-        <span class="pill">live dashboard</span>
+        <span class="pill">live dashboards</span>
       </div>
     </div>
   </div>
