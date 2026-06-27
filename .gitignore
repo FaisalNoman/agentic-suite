@@ -17,3 +17,7 @@ Thumbs.db
 # Run artifacts from the opt-in hooks / scanners
 scan-report.json
 suite-state-gate.json
+
+# session export transcripts (not project source)
+ACT.md
+*.export.md
