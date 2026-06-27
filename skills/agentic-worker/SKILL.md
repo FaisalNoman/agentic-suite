@@ -74,6 +74,9 @@ breaks when run **nested** (e.g. by the agentic-suite conductor). Mandatory in e
 It auto-selects a free port (base 4318, steps up if busy) and writes `plan/state/dashboard.json`.
 Open it: Windows `cmd /c start "" {url}` · macOS `open {url}` · Linux `xdg-open {url}`.
 Print: "Dashboard live: {url}".
+
+**Also copy the showcase generator** the same way: `<skill-base>/template/showcase/` → `./plan/showcase/`
+(nothing to start now — it runs once at Stage 5). Same nested-safe base-dir resolution as the dashboard.
 Write initial `agents.json` with `detect` card `status: "working"`. **Set `startedAt` to the current ISO timestamp here** — this is the run-start snapshot the dashboard uses to measure real token spend from the session transcript. Without it the Tokens KPI cannot isolate this run. **Also set `cwd` once = the ABSOLUTE path of the directory where `claude` launched (the session CWD, NOT `grow/` or a worktree subdir)** — the server reads it to find the session transcript; without it nested (conductor) and worktree runs show 0 tokens.
 
 ### Step 4 — Foreground vs background
@@ -216,9 +219,28 @@ Write final summary to `agents.json` log:
 { "t": "...", "msg": "Run complete. Output: outputs/{file}. Tasks: {N} done, {K} blocked." }
 ```
 
+### Showcase — interactive HTML of all deliverables (auto, every run)
+
+After the merge writes `outputs/`, build a single self-contained showcase page from every `.md` under it:
+
+```
+node plan/showcase/build-showcase.mjs outputs "<product/run title>"
+```
+
+- Zero-dependency, build-time render — converts each `.md` → HTML and inlines it, so `outputs/showcase.html`
+  works offline over `file://` (no CDN, no server). It scans `outputs/` recursively, builds a searchable
+  sidebar (grouped by sub-folder), a reading pane with per-doc table of contents, and a theme toggle.
+- Title: use the product name (under the conductor, the `HANDOFF.json` `product`); else the run/folder name.
+- It prints the written path on stdout and exits 1 if no `.md` were found (skip silently in that case).
+- **Open it for the user** (it's a `file://` page, so open via the OS, not the browser tab):
+  Windows `cmd /c start "" outputs/showcase.html` · macOS `open outputs/showcase.html` · Linux `xdg-open …`.
+- Best-effort — never fail the run if generation/opening errors; just note it in the log.
+
+Add the path to the final `agents.json` log and the CLI summary.
+
 Mark `coordinate` card `done`.
 
-Print to CLI: "Done. Output: `outputs/{file}`"
+Print to CLI: "Done. Output: `outputs/{file}` · Showcase: `outputs/showcase.html`"
 
 ---
 
@@ -267,6 +289,7 @@ Update `progress.pct` and `progress.step` at every sub-phase within `plan` and `
 - `references/unattended-mode.md` — no-human-in-the-loop / CI runs (Stage 0)
 - `references/harness-adapters.md` — multi-harness primitive mapping (Stage 0)
 - `references/specialist-registry.md` — route to a specialist persona from the shared `agents/registry.json` (Stage 4 dispatch)
+- `template/showcase/build-showcase.mjs` — zero-dep generator: all `outputs/**/*.md` → one interactive `outputs/showcase.html` (Stage 5, auto)
 - `references/review-criteria/default.md` — base review checklist (review-agent)
 - `references/review-criteria/research.md` — research domain additions
 - `references/review-criteria/analysis.md` — analysis domain additions

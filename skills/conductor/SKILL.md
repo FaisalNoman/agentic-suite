@@ -152,7 +152,8 @@ stack, URLs). Its specialist-registry router (P6) picks the business personas fr
 
 Set `phase = "done"`. Print a combined summary: what was BUILT (with run instructions) + what GROW
 produced (the growth deliverables and where they live). Point the user at both dashboards' Replay tabs
-for the full audit trail.
+for the full audit trail. agentic-worker also generates `grow/outputs/showcase.html` — an interactive page
+of every GROW deliverable; surface that path prominently as the one-stop view of the growth work.
 
 ## Dashboards (v1 — sequential takeover)
 
