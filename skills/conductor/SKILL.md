@@ -27,7 +27,10 @@ to running whichever is present.)
    `grow/` (its own `plan/state`, dashboard port 4318). The conductor keeps `suite-state.json` at the top.
 5. **Thin.** No build/growth logic here. Delegate everything to the two skills. The conductor never
    spawns task subagents itself.
-6. **Resume.** On re-run, read `suite-state.json`; skip a completed phase; resume the interrupted one.
+6. **Resume.** On re-run (including a deliberate fresh session after BUILD), read `suite-state.json`; skip
+   a completed phase; resume the interrupted one. If `build_status.completed === true` and `phase` is
+   `build`/`handoff`, skip straight to handoff/GROW using the existing `HANDOFF.json` — do NOT rebuild.
+   If `build_status.completed !== true`, resume BUILD (agentic-app-builder crash-resumes from its own state).
 
 ## STAGE 0 — Classify intent (read `references/prompt-split.md`)
 
@@ -71,6 +74,49 @@ phase proceed with no live board.
 
 When agentic-app-builder finishes (its Phase 9), capture where it wrote outputs and state.
 
+## STAGE 2.5 — BUILD completion gate (BLOCKING — never skip)
+
+GROW must NOT start on a failed or partial build. Before any handoff, read the build's own state and
+prove it completed. **This is a hard gate, not a suggestion.**
+
+1. Read `build/plan/state/framework-state.json` (the build's source of truth). If `build/plan/state/RESULT.json`
+   exists (unattended runs), read it too — it's the authoritative terminal signal.
+2. **Pass condition (ALL must hold):** every milestone `status` is `done` (and committed where git is on);
+   no task left `in_progress`/`pending`/`blocked`; and if `RESULT.json` exists, `status === "done"`.
+3. **Fail / partial** (any milestone not done, a `BLOCKED.md` present, `RESULT.status` ∈ `blocked|aborted`,
+   or the state file missing) → **STOP. Do NOT proceed to handoff or GROW.** Set `suite-state.phase`
+   stays `"build"`, write `suite-state.build_status` (schema below), report to the user what failed and
+   where (the blocked task/milestone + the build dashboard URL), and offer to **resume BUILD** (re-invoke
+   agentic-app-builder — it crash-resumes from `framework-state.json`) or abort the suite. Never silently
+   move on.
+4. **Pass** → record `suite-state.build_status` and continue.
+
+```json
+"build_status": {
+  "completed": true,
+  "last_successful_phase": "P9_finish",
+  "milestones_done": 5, "milestones_total": 5,
+  "result": "done",            // mirrors RESULT.json status when present, else "done"
+  "error": null,
+  "resumable": true,
+  "checked_at": "<iso>"
+}
+```
+
+### Session boundary (recommended for large builds)
+
+A full BUILD + GROW in ONE session can crowd the context window on big projects. The handoff is already
+a clean cold-start doc, so a fresh session for GROW is safe and often sharper. After the gate passes:
+
+- **Default (small/medium builds):** continue to Stage 3 → 4 in the same session.
+- **Recommend a split when the build was large** (heuristic: many milestones, a long run, or measured
+  tokens already high on the dashboard): tell the user "BUILD complete + verified. `HANDOFF.json` is
+  written. For best GROW quality you can **start a fresh session and re-run the suite** — it reads
+  `suite-state.json` (phase `build` done) + `HANDOFF.json` and resumes straight into GROW — or continue
+  here." Ask once (dashboard-first if a board is up, else `AskUserQuestion`). Either choice is valid;
+  never force the split (it would break the one-flow promise). On "fresh session", persist state and stop
+  cleanly; on "continue", proceed to Stage 3.
+
 ## STAGE 3 — Handoff (synthesize the product brief)
 
 Set `phase = "handoff"`. Build `HANDOFF.json` per `references/handoff-contract.md`.
@@ -80,6 +126,9 @@ build's artifacts: `build/plan/state/framework-state.json` (milestones, features
 (PRD/FEATURES/TECH-STACK), the run dashboard URL, the produced file map, and the shared
 `.agentic-builder/memory.json` (decisions). (Follow-up: have agentic-app-builder write `HANDOFF.json` at
 Phase 9 directly — then this stage just reads it.)
+
+Include the `build_status` block (from Stage 2.5) as a top-level field in `HANDOFF.json` so GROW — and any
+fresh session — can confirm the product is real and complete before working on it.
 
 Write `HANDOFF.json` to the top level AND copy it into `grow/plan/docs/HANDOFF.json` so agentic-worker's
 bring-your-own-docs gate picks it up as the product brief.

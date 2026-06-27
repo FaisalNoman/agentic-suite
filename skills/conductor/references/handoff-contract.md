@@ -27,9 +27,23 @@ table under "How the conductor synthesizes it").
   "memory_ref": ".agentic-builder/memory.json",
   "pending_business_tasks": ["SEO strategy", "content-marketing plan", "sales proposal"],
   "build_dashboard": "http://localhost:4317",
-  "generated_from": "build/plan/state/framework-state.json + build/plan/docs/"
+  "generated_from": "build/plan/state/framework-state.json + build/plan/docs/",
+  "build_status": {
+    "completed": true,
+    "last_successful_phase": "P9_finish",
+    "milestones_done": 2, "milestones_total": 2,
+    "result": "done",
+    "error": null,
+    "resumable": true,
+    "checked_at": "2026-06-27T00:00:00Z"
+  }
 }
 ```
+
+`build_status` is the completion proof from the conductor's Stage 2.5 gate. GROW (and any fresh session)
+must treat `completed: true` as a precondition — never grow a product the build did not finish. The
+conductor only ever writes `HANDOFF.json` AFTER the gate passes, so in practice `completed` is always
+`true` here; the block is carried forward so a cold-start session can re-verify without re-reading build state.
 
 ## How the conductor synthesizes it (today)
 
@@ -47,6 +61,7 @@ run's artifacts:
 | memory_ref | `.agentic-builder/memory.json` (shared, always) |
 | pending_business_tasks | the conductor's `grow_brief` |
 | build_dashboard | `build/plan/state/dashboard.json` url |
+| build_status | conductor Stage 2.5 gate: `framework-state.json` milestones + `RESULT.json` (if present) |
 
 Write it to the suite top level AND copy to `grow/plan/docs/HANDOFF.json`.
 
