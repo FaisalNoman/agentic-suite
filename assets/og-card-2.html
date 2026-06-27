@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>agentic-suite — social card (dashboard)</title>
+<style>
+  :root{
+    --bg:#0b0e14; --bg2:#11161f; --line:#1f2733; --line2:#2a3441;
+    --ink:#e6edf3; --ink2:#aeb9c7; --dim:#6b7787;
+    --accent:#7aa2ff; --accent2:#9b8cff; --amber:#f0c674; --green:#22c55e;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#05070b;display:grid;place-items:center;min-height:100vh;font-family:var(--sans)}
+  .hint{position:fixed;top:10px;left:0;right:0;text-align:center;color:#5b6776;font:12px/1.4 var(--mono)}
+
+  .card{position:relative;width:1200px;height:630px;overflow:hidden;border-radius:18px;
+    background:
+      radial-gradient(120% 90% at 12% 18%, rgba(122,162,255,.12), transparent 55%),
+      linear-gradient(150deg,var(--bg) 0%, var(--bg2) 100%);
+    color:var(--ink);box-shadow:0 40px 120px -40px #000}
+  .card::before{content:"";position:absolute;inset:0;
+    background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:26px 26px;mask:linear-gradient(120deg,#000 22%,transparent 60%);opacity:.6}
+
+  /* ── LEFT: wordmark safe area ── */
+  .meta{position:absolute;left:64px;top:0;bottom:0;width:430px;display:flex;flex-direction:column;justify-content:center;z-index:3}
+  .brandrow{display:flex;align-items:center;gap:11px;margin-bottom:20px}
+  .glyph{width:28px;height:28px;color:var(--accent)}
+  .kicker{font:600 11.5px/1 var(--mono);letter-spacing:2.5px;text-transform:uppercase;color:var(--dim)}
+  h1{font-size:58px;line-height:.98;font-weight:600;letter-spacing:-1.4px}
+  h1 .arrow{color:var(--accent)}
+  .tag{margin-top:16px;font-size:18.5px;line-height:1.45;color:var(--ink2);max-width:380px}
+  .tag b{color:var(--ink);font-weight:600}
+  .pills{display:flex;gap:9px;margin-top:24px;flex-wrap:wrap;max-width:400px}
+  .pill{font:600 12px var(--mono);padding:6px 12px;border-radius:999px;border:1px solid var(--line2);color:var(--ink2)}
+  .pill.accent{border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:#dfe7ff;background:color-mix(in srgb,var(--accent) 12%,transparent)}
+
+  /* ── RIGHT: real dashboard in a browser frame, bleeding off the right edge ── */
+  .shot{position:absolute;right:-60px;top:64px;bottom:64px;width:660px;z-index:2;
+    border-radius:14px;border:1px solid var(--line2);overflow:hidden;background:#0a0f17;
+    box-shadow:0 30px 90px -30px #000, 0 0 0 1px rgba(122,162,255,.10), 0 0 60px -10px rgba(122,162,255,.18)}
+  .bar{height:34px;display:flex;align-items:center;gap:7px;padding:0 13px;background:#0e131b;border-bottom:1px solid var(--line)}
+  .bar i{width:10px;height:10px;border-radius:50%;background:#2a3441}
+  .bar i:nth-child(1){background:#f8595022} .bar i:nth-child(2){background:#f0c67422} .bar i:nth-child(3){background:#22c55e22}
+  .bar .url{margin-left:10px;font:600 11px var(--mono);color:var(--dim);display:flex;align-items:center;gap:7px}
+  .bar .dot-live{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green)}
+  .shot img{display:block;width:100%;height:calc(100% - 34px);object-fit:cover;object-position:left top}
+  /* left scrim so wordmark stays readable over the panel's left edge */
+  .scrim{position:absolute;inset:0;z-index:2;pointer-events:none;
+    background:linear-gradient(90deg, var(--bg) 26%, rgba(11,14,20,.55) 40%, transparent 56%)}
+  .badge{position:absolute;right:34px;bottom:30px;z-index:4;font:600 11px var(--mono);color:var(--dim);
+    border:1px solid var(--line2);border-radius:999px;padding:6px 12px;background:rgba(14,19,27,.7)}
+</style>
+</head>
+<body>
+<div class="hint">og-card-2.html — screenshot the 1200×630 card below for the social/OG image</div>
+
+<div class="card" id="card">
+  <!-- dashboard panel -->
+  <div class="shot">
+    <div class="bar"><i></i><i></i><i></i>
+      <span class="url"><span class="dot-live"></span>localhost:4317 — live swarm dashboard</span>
+    </div>
+    <img src="dashboard.png" alt="agentic-suite live dashboard">
+  </div>
+  <div class="scrim"></div>
+
+  <!-- wordmark -->
+  <div class="meta">
+    <div class="brandrow">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="5" r="2.4"/><circle cx="5" cy="19" r="2.4"/><circle cx="19" cy="19" r="2.4"/>
+        <path d="M12 7.4v4.6M10.4 13.2 6.6 16.8M13.6 13.2l3.8 3.6"/></svg>
+      <span class="kicker">SDLC + GROW · live dashboards</span>
+    </div>
+    <h1>agentic<span class="arrow">·</span>suite</h1>
+    <p class="tag"><b>Watch it build &amp; grow — live.</b> A parallel-agent SDLC + GROW framework: ship the software, then grow it, on a real-time dashboard.</p>
+    <div class="pills">
+      <span class="pill accent">SDLC → GROW</span>
+      <span class="pill">parallel swarm</span>
+      <span class="pill">live dashboards</span>
+    </div>
+  </div>
+
+  <div class="badge">in-session · no API key</div>
+</div>
+</body>
+</html>
