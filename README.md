@@ -56,6 +56,10 @@ a content-marketing plan, and a sales proposal.
 
 ---
 
+### Invoking directly / Usage
+`/agentic-suite` classifies and routes any of the above (and chains when mixed). For a known single intent
+you can skip the classify hop: build-only → `agentic-app-builder`; grow-only → `agentic-worker`.
+
 ## Workflow
 
 ```mermaid
