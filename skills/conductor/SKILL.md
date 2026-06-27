@@ -58,7 +58,7 @@ run `/suite-doctor` manually anytime, but they never have to: this step makes it
 
 Write `suite-state.json`:
 ```json
-{ "phase": "classify|build|handoff|grow|done", "needs_build": true, "needs_grow": true,
+{ "phase": "classify|build|handoff|grow|act|done", "needs_build": true, "needs_grow": true,
   "build_brief": "…", "grow_brief": "…", "build_status": null, "handoff": null, "updated_at": "<iso>" }
 ```
 
@@ -169,6 +169,32 @@ SKIPS re-interviewing — its SEO/marketing/sales/research agents work against t
 stack, URLs). Its specialist-registry router (P6) picks the business personas from the shared
 `agents/registry.json`. Let it run to completion.
 
+## STAGE 4.5 — ACT (optional, opt-in) — make GROW deliverables ship-ready
+
+Phase 1 is **file-only** — it writes under `act/`, never posts/sends/deploys. Full schema in
+`references/act-contract.md`.
+
+1. **Gate (offer only when it applies).** Run `node <conductor-base>/scripts/act-scan.mjs grow/outputs`. If
+   `offered` is false (no `software`/`publishable` deliverables) → skip ACT silently. Else **ask the user
+   on the dashboard** ("GROW produced N deliverables — run ACT to make them ship-ready?"). Skip on No.
+2. **Classify + extract.** For each deliverable, confirm its `class` (software | publishable | plan) and
+   `channel`, and extract the structured content the writer needs — `tweets[]`, `emails[]`, `posts[]`,
+   `gtm[]`, and a tagged `tasks[]` (`auto: automatable|human`). Build the spec JSON
+   (`{outputsDir, actDir:"act", deliverables:[…]}`) per `references/act-contract.md`.
+3. **Executor B — artifacts (safe, no approval).** Run
+   `node <conductor-base>/scripts/act-build-artifacts.mjs <spec.json>`. It writes the confirmed formats
+   (tweets.json/txt · .eml drafts · posts · gtm-tasks.json/csv · per-deliverable `.tasks.md`), validates
+   (≤280, CSV/eml), and emits `act/ACT-PLAN.json`. Surface any `warnings`.
+4. **Executor A — build (APPROVAL-GATED).** For each `executor:"build"` deliverable (status `pending` in
+   ACT-PLAN), **ask on the dashboard before building** (it spawns a full build). On Approve: synthesize a
+   `build_brief` from the deliverable `.md` + `HANDOFF.json`, invoke **agentic-app-builder** in the
+   deliverable's `build_ref.dir` (FEATURE if a repo exists there, else GREENFIELD), then update its
+   ACT-PLAN entry (`approval.status`, `status`, `build_ref.result`). Never auto-build.
+5. Set `suite-state.phase = "act"`; add an ACT section to the showcase linking every `outputs[].path`.
+
+ACT is **off by default**; only run it when the user opts in at step 1. Never perform outward/irreversible
+actions in Phase 1 (posting, sending, deploying live = Phase 2, not built).
+
 ## STAGE 5 — Wrap up
 
 Set `phase = "done"`. Print a combined summary: what was BUILT (with run instructions) + what GROW
@@ -230,4 +256,5 @@ suite's SUITE-PLAN.)
 - `scripts/suite-resume.mjs` + `commands/suite-resume.md` — deterministic resume briefing for an interrupted run.
 - `scripts/scan-surface.mjs` — advisory security scan of the persona registry + skill/settings/hook files for injection patterns; writes `scan-report.json`.
 - `scripts/route-preview.mjs` — preview which specialist persona the router would pick for a requirement (mirrors the live specialist-router scoring); read-only demonstrator.
+- `references/act-contract.md` + `scripts/act-scan.mjs` + `scripts/act-build-artifacts.mjs` — optional **ACT** stage (Stage 4.5): scan/gate GROW outputs, write ship-ready artifacts (file-only), build-deliverables approval-gated. Schema = `ACT-PLAN.json`.
 - `scripts/suite-doctor.mjs` + `commands/suite-doctor.md` — pre-flight environment check (node, skills, registry, ports, state, write access); PASS/WARN/FAIL, exit 0/1/2. Advisory.

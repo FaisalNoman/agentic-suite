@@ -55,6 +55,7 @@ switch (suite.phase) {
   case "build": next = "Resume BUILD (agentic-app-builder crash-resumes from framework-state.json). When it finishes, run the Stage 2.5 gate: node scripts/check-build-gate.mjs build"; break;
   case "handoff": next = "BUILD done. Synthesize/confirm HANDOFF.json, then start GROW."; break;
   case "grow": next = "Resume GROW (agentic-worker crash-resumes from its framework-state.json). Outputs land in grow/outputs/ + showcase.html."; break;
+  case "act": next = "Resume ACT (optional): read act/ACT-PLAN.json — artifacts are file-only; finish any approval-gated build deliverables (status pending)."; break;
   case "done": next = "Run complete. See grow/outputs/showcase.html and both dashboards' Replay tabs."; break;
   default: next = "Read suite-state.json and continue from the reported phase.";
 }
