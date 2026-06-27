@@ -190,10 +190,21 @@ Phase 1 is **file-only** — it writes under `act/`, never posts/sends/deploys. 
    `build_brief` from the deliverable `.md` + `HANDOFF.json`, invoke **agentic-app-builder** in the
    deliverable's `build_ref.dir` (FEATURE if a repo exists there, else GREENFIELD), then update its
    ACT-PLAN entry (`approval.status`, `status`, `build_ref.result`). Never auto-build.
-5. Set `suite-state.phase = "act"`; add an ACT section to the showcase linking every `outputs[].path`.
+5. **Phase 2 — outward execution (OPT-IN, off by default; see `references/act-phase2.md`).** Only if the user
+   explicitly opts in. For each `automatable` task with a target `channel`: look up
+   `references/act-executors.json[channel]` → discover a matching MCP tool via ToolSearch (`mcp_hint`); if
+   none, or `mode:"manual"`, leave the Phase-1 artifact and mark the task `skipped`. Otherwise: compute the
+   idempotency key (`act-ledger.mjs key …`), `act-ledger.mjs check` it (skip if already `executed`), show a
+   **dry-run preview on the dashboard and get PER-ACTION approval**, then call the MCP tool and
+   `act-ledger.mjs record` the result. **Five guardrails are mandatory:** per-action approval · dry-run first ·
+   idempotent · draft/reversible-first (`mode:"draft"` channels only stage drafts — never auto-publish) ·
+   never touch `policy.never_auto` (paid-ads/bulk-email/dm). Write each result into the task's `execution` block.
+6. Set `suite-state.phase = "act"`; add an ACT section to the showcase linking every `outputs[].path`
+   (and any Phase-2 `execution.result` links).
 
-ACT is **off by default**; only run it when the user opts in at step 1. Never perform outward/irreversible
-actions in Phase 1 (posting, sending, deploying live = Phase 2, not built).
+ACT is **off by default**; only run it when the user opts in at step 1. Phase 1 is file-only. Phase 2 outward
+actions (deploy/draft/schedule/issues) run ONLY with the five guardrails above; posting/sending without
+approval, and anything on `never_auto`, are forbidden.
 
 ## STAGE 5 — Wrap up
 
@@ -256,5 +267,6 @@ suite's SUITE-PLAN.)
 - `scripts/suite-resume.mjs` + `commands/suite-resume.md` — deterministic resume briefing for an interrupted run.
 - `scripts/scan-surface.mjs` — advisory security scan of the persona registry + skill/settings/hook files for injection patterns; writes `scan-report.json`.
 - `scripts/route-preview.mjs` — preview which specialist persona the router would pick for a requirement (mirrors the live specialist-router scoring); read-only demonstrator.
-- `references/act-contract.md` + `scripts/act-scan.mjs` + `scripts/act-build-artifacts.mjs` — optional **ACT** stage (Stage 4.5): scan/gate GROW outputs, write ship-ready artifacts (file-only), build-deliverables approval-gated. Schema = `ACT-PLAN.json`.
+- `references/act-contract.md` + `scripts/act-scan.mjs` + `scripts/act-build-artifacts.mjs` — optional **ACT** stage (Stage 4.5, Phase 1): scan/gate GROW outputs, write ship-ready artifacts (file-only), build-deliverables approval-gated. Schema = `ACT-PLAN.json`.
+- `references/act-phase2.md` + `references/act-executors.json` + `scripts/act-ledger.mjs` — **ACT Phase 2** (opt-in, off by default): outward execution via the user's MCP connectors behind 5 guardrails (per-action approval · dry-run · idempotency ledger · draft/reversible-first · never-auto list).
 - `scripts/suite-doctor.mjs` + `commands/suite-doctor.md` — pre-flight environment check (node, skills, registry, ports, state, write access); PASS/WARN/FAIL, exit 0/1/2. Advisory.

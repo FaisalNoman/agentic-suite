@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "_comment": "ACT Phase 2 connector registry. Declarative map of channel -> outward capability. The conductor reads this, then discovers a matching MCP tool via ToolSearch at runtime (mcp_hint). NO vendor code lives here. Default posture: draft/reversible first. 'mode' = auto (may execute after per-action approval) | draft (only stage/draft, human does the final send) | manual (no connector path; fall back to the Phase-1 artifact).",
+  "policy": {
+    "default_enabled": false,
+    "per_action_approval": true,
+    "dry_run_first": true,
+    "idempotent": true,
+    "never_auto": ["paid-ads", "bulk-email", "dm"]
+  },
+  "connectors": [
+    {
+      "channel": "web", "capability": "deploy-static",
+      "mcp_hint": "netlify deploy OR vercel deploy OR github pages publish",
+      "reversible": true, "mode": "auto",
+      "idempotency": "site+commit", "notes": "Deploy the Executor-A built site. Reversible (redeploy/rollback). Per-action approval still required."
+    },
+    {
+      "channel": "issues", "capability": "create-issues",
+      "mcp_hint": "linear create issue OR jira create issue OR github create issue",
+      "reversible": true, "mode": "auto",
+      "idempotency": "title+project", "notes": "Turn gtm-tasks into tracker issues. Reversible (close/delete)."
+    },
+    {
+      "channel": "social", "capability": "schedule-post",
+      "mcp_hint": "buffer schedule OR typefully draft OR x create post",
+      "reversible": true, "mode": "draft",
+      "idempotency": "text", "notes": "Default DRAFT/SCHEDULE only — never auto-publish. Human approves the queue."
+    },
+    {
+      "channel": "email", "capability": "create-draft",
+      "mcp_hint": "gmail create draft",
+      "reversible": true, "mode": "draft",
+      "idempotency": "to+subject", "notes": "Create a Gmail DRAFT — never send. Human reviews + sends."
+    },
+    {
+      "channel": "blog", "capability": "create-draft-post",
+      "mcp_hint": "wordpress create draft OR ghost create draft OR notion create page",
+      "reversible": true, "mode": "draft",
+      "idempotency": "slug", "notes": "Create an unpublished CMS draft. Human publishes."
+    },
+    {
+      "channel": "sheet", "capability": "write-rows",
+      "mcp_hint": "google sheets append OR drive create file",
+      "reversible": true, "mode": "auto",
+      "idempotency": "sheet+range", "notes": "Push the gtm.csv task list into a sheet. Reversible."
+    }
+  ]
+}
