@@ -30,6 +30,7 @@ table under "How the conductor synthesizes it").
   "generated_from": "build/plan/state/framework-state.json + build/plan/docs/",
   "build_status": {
     "completed": true,
+    "gate_script_passed": true,
     "last_successful_phase": "P9_finish",
     "milestones_done": 2, "milestones_total": 2,
     "result": "done",
@@ -61,7 +62,7 @@ run's artifacts:
 | memory_ref | `.agentic-builder/memory.json` (shared, always) |
 | pending_business_tasks | the conductor's `grow_brief` |
 | build_dashboard | `build/plan/state/dashboard.json` url |
-| build_status | conductor Stage 2.5 gate: `framework-state.json` milestones + `RESULT.json` (if present) |
+| build_status | conductor Stage 2.5 gate script (`scripts/check-build-gate.mjs`) → `suite-state-gate.json` |
 
 Write it to the suite top level AND copy to `grow/plan/docs/HANDOFF.json`.
 

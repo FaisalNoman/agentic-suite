@@ -28,9 +28,10 @@ to running whichever is present.)
 5. **Thin.** No build/growth logic here. Delegate everything to the two skills. The conductor never
    spawns task subagents itself.
 6. **Resume.** On re-run (including a deliberate fresh session after BUILD), read `suite-state.json`; skip
-   a completed phase; resume the interrupted one. If `build_status.completed === true` and `phase` is
-   `build`/`handoff`, skip straight to handoff/GROW using the existing `HANDOFF.json` — do NOT rebuild.
-   If `build_status.completed !== true`, resume BUILD (agentic-app-builder crash-resumes from its own state).
+   a completed phase; resume the interrupted one. If `build_status.gate_script_passed === true` and `phase`
+   is `build`/`handoff`, skip straight to handoff/GROW using the existing `HANDOFF.json` — do NOT rebuild.
+   Otherwise re-run the Stage 2.5 gate (it is cheap + deterministic); on fail, resume BUILD
+   (agentic-app-builder crash-resumes from its own state).
 
 ## STAGE 0 — Classify intent (read `references/prompt-split.md`)
 
@@ -44,7 +45,7 @@ Classify the request into `{ needs_build, needs_grow, build_brief, grow_brief }`
 Write `suite-state.json`:
 ```json
 { "phase": "classify|build|handoff|grow|done", "needs_build": true, "needs_grow": true,
-  "build_brief": "…", "grow_brief": "…", "handoff": null, "updated_at": "<iso>" }
+  "build_brief": "…", "grow_brief": "…", "build_status": null, "handoff": null, "updated_at": "<iso>" }
 ```
 
 ## STAGE 1 — Split
@@ -76,24 +77,30 @@ When agentic-app-builder finishes (its Phase 9), capture where it wrote outputs 
 
 ## STAGE 2.5 — BUILD completion gate (BLOCKING — never skip)
 
-GROW must NOT start on a failed or partial build. Before any handoff, read the build's own state and
-prove it completed. **This is a hard gate, not a suggestion.**
+GROW must NOT start on a failed or partial build. The gate is **script-enforced** — a deterministic
+check, not prose you reason about — so a pass cannot be hallucinated. **This is a hard gate, never skip.**
 
-1. Read `build/plan/state/framework-state.json` (the build's source of truth). If `build/plan/state/RESULT.json`
-   exists (unattended runs), read it too — it's the authoritative terminal signal.
-2. **Pass condition (ALL must hold):** every milestone `status` is `done` (and committed where git is on);
-   no task left `in_progress`/`pending`/`blocked`; and if `RESULT.json` exists, `status === "done"`.
-3. **Fail / partial** (any milestone not done, a `BLOCKED.md` present, `RESULT.status` ∈ `blocked|aborted`,
-   or the state file missing) → **STOP. Do NOT proceed to handoff or GROW.** Set `suite-state.phase`
-   stays `"build"`, write `suite-state.build_status` (schema below), report to the user what failed and
-   where (the blocked task/milestone + the build dashboard URL), and offer to **resume BUILD** (re-invoke
-   agentic-app-builder — it crash-resumes from `framework-state.json`) or abort the suite. Never silently
-   move on.
-4. **Pass** → record `suite-state.build_status` and continue.
+1. **Run the gate script** (resolve from THIS skill's base dir, nested-safe like the dashboard):
+   ```
+   node <conductor-base>/scripts/check-build-gate.mjs build suite-state-gate.json
+   ```
+   It reads `build/plan/state/` (framework-state.json milestone map + scheduler, `BLOCKED.md`, and
+   `RESULT.json` if present), writes `suite-state-gate.json`, and exits `0` (passed) or `1` (failed).
+2. **Read both the exit code AND `suite-state-gate.json`.** Trust the script's verdict, not your own
+   reading of the state files — that is the whole point of the gate.
+3. **`passed === false` / non-zero exit** → **STOP. Do NOT proceed to handoff or GROW.** Leave
+   `suite-state.phase` at `"build"`, copy the gate's `reason` + offending items into
+   `suite-state.build_status`, set `build_status.gate_script_passed = false`, report to the user what
+   failed and where (the gate `reason`/`not_done` + the build dashboard URL), and offer to **resume BUILD**
+   (re-invoke agentic-app-builder — it crash-resumes from `framework-state.json`) or abort the suite.
+   Never silently move on.
+4. **`passed === true` / exit 0** → set `build_status.gate_script_passed = true`, record the rest of
+   `build_status`, and continue.
 
 ```json
 "build_status": {
   "completed": true,
+  "gate_script_passed": true,  // ONLY true when check-build-gate.mjs exited 0 — the deterministic proof
   "last_successful_phase": "P9_finish",
   "milestones_done": 5, "milestones_total": 5,
   "result": "done",            // mirrors RESULT.json status when present, else "done"
@@ -165,3 +172,4 @@ suite's SUITE-PLAN.)
 
 - `references/prompt-split.md` — intent classifier + how to split one request into build_brief + grow_brief.
 - `references/handoff-contract.md` — `HANDOFF.json` schema, how to synthesize it from the build, how GROW consumes it.
+- `scripts/check-build-gate.mjs` — deterministic Stage 2.5 BUILD-completion gate (zero-dep node); writes `suite-state-gate.json`, exits 0/1.
