@@ -452,6 +452,13 @@ const ICON = {
 };
 const ROLE_VAR = r => `var(--r-${(r||"impl").replace(/[^a-z-]/g,"")||"impl"})`;
 const MODEL_TIER = m => { m=String(m||"").toLowerCase(); return /opus/.test(m)?"opus":/sonnet/.test(m)?"sonnet":/haiku/.test(m)?"haiku":"session"; };
+// Default tier per role (agent-contracts.md §Model tiering) — used to DERIVE a badge when the orchestrator
+// didn't write a.model onto the card, so the badge shows regardless. a.model (if present) always wins.
+const ROLE_TIER = { architect:"opus", planner:"opus", "spec-review":"sonnet", "quality-review":"sonnet", review:"sonnet", fix:"sonnet", tdd:"sonnet", impl:"haiku", scaffold:"haiku", "doc-check":"haiku", router:"haiku", interview:"sonnet", prd:"sonnet", wireframe:"sonnet",
+  gather:"sonnet", research:"sonnet", analyze:"sonnet", transform:"haiku", draft:"sonnet", content:"sonnet", coordinate:"sonnet" };
+// returns { label, tier, inferred } or null
+function MODEL_OF(a){ if(a.model) return {label:a.model, tier:MODEL_TIER(a.model), inferred:false};
+  const t=ROLE_TIER[(a.role||"").toLowerCase()]; return t?{label:t, tier:t, inferred:true}:null; }
 function icon(role){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[role]||ICON.impl}</svg>`;}
 
 /* ── stall detection ── */
@@ -512,7 +519,7 @@ function renderSwarm(s){
     return `<article class="card ${st}" style="--role:${ROLE_VAR(a.role)}">
       <span class="st">${esc(st)}</span>
       <div class="top"><div class="av">${icon(a.role)}</div>
-        <div style="min-width:0"><div class="role">${esc(a.role||"")}${a.persona&&a.persona.name?` · ${esc(a.persona.emoji||"")} ${esc(a.persona.name)}`:""}${a.model?`<span class="model ${MODEL_TIER(a.model)}" title="model tier for this agent">${esc(a.model)}</span>`:""}</div>
+        <div style="min-width:0"><div class="role">${esc(a.role||"")}${a.persona&&a.persona.name?` · ${esc(a.persona.emoji||"")} ${esc(a.persona.name)}`:""}${(()=>{const m=MODEL_OF(a);return m?`<span class="model ${m.tier}" title="${m.inferred?'inferred from role':'model'} tier">${m.inferred?"~":""}${esc(m.label)}</span>`:"";})()}</div>
         <div class="label">${esc(a.label||a.id||"")}</div>
         ${file?`<div class="file">${esc(file)}</div>`:''}</div></div>${det}${more}
     </article>`;
@@ -524,7 +531,7 @@ function renderSwarm(s){
   // role legend + model-tier mix (cost signal: opus≈expensive, haiku≈cheap)
   const roles=[...new Set(agents.map(a=>a.role).filter(Boolean))];
   const mix={opus:0,sonnet:0,haiku:0,session:0};
-  agents.forEach(a=>{ if(a.model) mix[MODEL_TIER(a.model)]++; });
+  agents.forEach(a=>{ const m=MODEL_OF(a); if(m) mix[m.tier]++; });
   const mixHtml=(mix.opus||mix.sonnet||mix.haiku||mix.session)
     ? `<span class="mix" title="model tier mix across agents — predict spend (opus≫sonnet≫haiku)">`+
       [["opus","O"],["sonnet","S"],["haiku","H"],["session","·"]].filter(([k])=>mix[k])
