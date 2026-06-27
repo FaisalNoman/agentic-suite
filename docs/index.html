@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agentic-suite — documentation</title>
+<style>
+:root{
+  --bg:#0b0e14; --bg2:#0e131b; --panel:#11161f; --line:#1f2733; --line2:#2a3441;
+  --ink:#e6edf3; --ink2:#aeb9c7; --dim:#6b7787;
+  --accent:#7aa2ff; --accent2:#9b8cff; --amber:#f0c674; --green:#22c55e; --red:#f85149;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --maxw:880px;
+}
+html[data-theme="light"]{--bg:#f6f8fc;--bg2:#fff;--panel:#fff;--line:#e2e8f0;--line2:#cfd8e3;--ink:#10151c;--ink2:#39434f;--dim:#7a8696;--accent:#3f5bd9;--accent2:#6d4fd0;}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.65;
+  display:grid;grid-template-columns:280px 1fr}
+a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+code{font-family:var(--mono);font-size:.86em;background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+pre{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:15px 17px;overflow-x:auto;margin:14px 0}
+pre code{background:none;border:none;padding:0;font-size:13px;line-height:1.6;color:var(--ink2)}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:6px}
+
+/* sidebar */
+aside{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--line);padding:22px 16px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px}
+.brand .dot{width:11px;height:11px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 12px var(--accent)}
+.brand b{font-size:15px;letter-spacing:.2px} .brand b .a{color:var(--accent)}
+.brand span{display:block;font:600 10px var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-top:1px}
+nav a{display:block;padding:6px 10px;border-radius:7px;color:var(--ink2);font-size:13.5px;border-left:2px solid transparent}
+nav a:hover{background:var(--panel);text-decoration:none;color:var(--ink)}
+nav a.active{color:var(--ink);background:color-mix(in srgb,var(--accent) 14%,transparent);border-left-color:var(--accent)}
+nav .grp{font:600 10px var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);padding:14px 10px 5px}
+
+/* content */
+main{min-width:0;padding:0 0 120px}
+.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 40px;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar .links{display:flex;gap:8px;align-items:center}
+.btn{font:600 12.5px var(--sans);padding:7px 13px;border-radius:8px;border:1px solid var(--line2);color:var(--ink2);cursor:pointer;background:transparent}
+.btn:hover{border-color:var(--accent);color:var(--ink);text-decoration:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#0a0f1a}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 40px}
+section{padding:46px 0 8px;border-bottom:1px solid var(--line)}
+section:last-child{border-bottom:none}
+h1{font-size:40px;line-height:1.08;letter-spacing:-1px;font-weight:700}
+h2{font-size:25px;letter-spacing:-.4px;margin:6px 0 4px;font-weight:700;scroll-margin-top:70px}
+h3{font-size:17px;margin:22px 0 6px;font-weight:700;color:var(--ink)}
+p{margin:11px 0;color:var(--ink2)} p strong,li strong{color:var(--ink)}
+ul,ol{margin:11px 0 11px 22px;color:var(--ink2)} li{margin:5px 0}
+.lead{font-size:19px;color:var(--ink2);margin-top:14px;max-width:680px}
+.eyebrow{font:600 11px var(--mono);letter-spacing:2.5px;text-transform:uppercase;color:var(--accent)}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+th{background:var(--panel);font-weight:700;color:var(--ink)}
+tr:nth-child(even) td{background:color-mix(in srgb,var(--panel) 45%,transparent)}
+.pillrow{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.pill{font:600 12px var(--mono);padding:5px 11px;border-radius:999px;border:1px solid var(--line2);color:var(--ink2)}
+.pill.b{border-color:color-mix(in srgb,var(--accent) 50%,transparent);color:#dfe7ff;background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.card h3{margin:0 0 6px} .card p{margin:4px 0;font-size:14px}
+.note{border:1px solid var(--line2);border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent);
+  border-radius:0 10px 10px 0;padding:12px 16px;margin:16px 0;font-size:14px}
+.note.warn{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 8%,transparent)}
+.note b{color:var(--ink)}
+.kref{display:flex;gap:10px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line)}
+.kref code{white-space:nowrap} .kref span{color:var(--ink2);font-size:13.5px}
+.dotline{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.hero{padding-top:54px}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:600 13px var(--mono);color:var(--ink2);margin:18px 0}
+.flow b{color:var(--ink)} .flow .ar{color:var(--accent)}
+@media(max-width:880px){body{grid-template-columns:1fr} aside{display:none} .grid{grid-template-columns:1fr} .wrap,.topbar{padding-left:20px;padding-right:20px}}
+</style>
+</head>
+<body>
+<aside>
+  <div class="brand"><span class="dot"></span><div><b>agentic<span class="a">·</span>suite</b><span>docs</span></div></div>
+  <nav id="nav">
+    <div class="grp">Start</div>
+    <a href="#overview">Overview</a>
+    <a href="#install">Install</a>
+    <a href="#quickstart">Quick start</a>
+    <a href="#routing">Routing</a>
+    <div class="grp">Engines</div>
+    <a href="#build">BUILD — app-builder</a>
+    <a href="#grow">GROW — worker</a>
+    <a href="#handoff">Handoff &amp; gate</a>
+    <div class="grp">Dashboard</div>
+    <a href="#dashboard">Live dashboard</a>
+    <a href="#personas">Persona routing</a>
+    <div class="grp">Operate</div>
+    <a href="#preflight">Pre-flight (doctor)</a>
+    <a href="#hooks">Enforcement hooks</a>
+    <a href="#learning">Cross-run learning</a>
+    <a href="#resume">State &amp; resume</a>
+    <a href="#reference">Commands &amp; scripts</a>
+    <div class="grp">More</div>
+    <a href="#architecture">Architecture</a>
+    <a href="#roadmap">Roadmap</a>
+  </nav>
+</aside>
+
+<main>
+  <div class="topbar">
+    <div style="font:600 13px var(--mono);color:var(--dim)">agentic-suite · documentation</div>
+    <div class="links">
+      <button class="btn" id="theme">◐ Theme</button>
+      <a class="btn primary" href="https://github.com/FaisalNoman/agentic-suite" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <section class="hero" id="overview">
+      <div class="eyebrow">SDLC + GROW · in-session · no API key</div>
+      <h1>Build the software,<br>then grow it — on a live dashboard.</h1>
+      <p class="lead">agentic-suite is a conductor that chains <b>BUILD → GROW</b> for a single request needing both software <em>and</em> the business work on top of it (SEO, marketing, sales, research, content). A parallel-agent swarm ships the product, hands off a factual brief, then grows it against what was actually built — all in your Claude Code session, no API key.</p>
+      <div class="flow"><b>request</b><span class="ar">→</span> pre-flight <span class="ar">→</span> classify <span class="ar">→</span> split <span class="ar">→</span> <b>BUILD</b> <span class="ar">→</span> gate <span class="ar">→</span> HANDOFF.json <span class="ar">→</span> <b>GROW</b> <span class="ar">→</span> showcase</div>
+      <div class="pillrow">
+        <span class="pill b">parallel agent swarm</span><span class="pill">global DAG scheduler</span><span class="pill">TDD + two-stage review</span>
+        <span class="pill">live dashboards</span><span class="pill">192-persona registry</span><span class="pill">crash-resume</span>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="eyebrow">Get started</div>
+      <h2>Install</h2>
+      <p>One install registers all three bundled skills (conductor + agentic-app-builder + agentic-worker) and the shared persona registry.</p>
+      <pre><code>/plugin marketplace add FaisalNoman/agentic-suite
+/plugin install agentic-suite@agentic-suite</code></pre>
+      <p>Requirements: Claude Code + <b>Node.js 18+</b> (zero-dependency <code>.mjs</code> helpers — dashboard, gate, doctor). No API key; runs on your subscription, in-session.</p>
+    </section>
+
+    <section id="quickstart">
+      <div class="eyebrow">Get started</div>
+      <h2>Quick start</h2>
+      <p>Just prompt — nothing to set up first. On a fresh run the conductor auto-runs a pre-flight check, then drives the rest.</p>
+      <pre><code>Build a photo-manager web app, then write its SEO strategy,
+a content-marketing plan, and a sales proposal.</code></pre>
+      <p>The conductor builds the app, gates completion, hands off, produces the growth deliverables against the real product, and opens an interactive showcase of everything.</p>
+      <div class="grid">
+        <div class="card"><h3>Build-only</h3><p>“Build me X” → routes straight to agentic-app-builder.</p></div>
+        <div class="card"><h3>Grow-only</h3><p>“Research X and write a report” → routes to agentic-worker.</p></div>
+        <div class="card"><h3>Mixed</h3><p>“Build X then market it” → the full BUILD → GROW chain.</p></div>
+        <div class="card"><h3>Unclear</h3><p>The conductor asks you once (on the dashboard) which you meant.</p></div>
+      </div>
+    </section>
+
+    <section id="routing">
+      <div class="eyebrow">Get started</div>
+      <h2>Routing — which engine runs</h2>
+      <p>At Stage 0 the conductor classifies intent. Rule of thumb:</p>
+      <ul>
+        <li>Produces or edits <b>runnable code</b> → <b>BUILD</b> participates.</li>
+        <li>Produces a <b>document / dataset / strategy</b> → <b>GROW</b> participates.</li>
+        <li><b>Both</b> → the BUILD → GROW chain. <b>Neither clear</b> → it asks once.</li>
+      </ul>
+      <p>A marketing-flavoured noun doesn’t force GROW if the deliverable is software — “an SEO <em>tool</em>” is a BUILD; “landing-page <em>copy</em>” is GROW.</p>
+      <table>
+        <tr><th>Prompt</th><th>Runs</th></tr>
+        <tr><td>“Build a todo web app” / “fix this bug” / “add dark mode”</td><td>builder only</td></tr>
+        <tr><td>“Build a landing page / website”</td><td>builder only (it’s code)</td></tr>
+        <tr><td>“Research &amp; compare 5 CRM tools” / “write an SEO strategy”</td><td>worker only</td></tr>
+        <tr><td>“Write landing-page copy + 3 launch tweets”</td><td>worker only</td></tr>
+        <tr><td>“Build a photo manager, then write its SEO + GTM plan”</td><td>builder → worker</td></tr>
+        <tr><td>“Build a tool that generates SEO reports”</td><td>builder only (it’s a tool)</td></tr>
+        <tr><td>“Improve my site’s SEO” / “scrape competitor prices”</td><td>conductor asks (tool vs strategy/data)</td></tr>
+      </table>
+      <div class="note"><b>Two things people miss.</b> Pre-build research is <em>not</em> GROW — “research the best stack then build it” is builder-only (research feeds builder’s own planning). And order is hard-wired <b>BUILD → GROW</b> (growth depends on the product existing).</div>
+    </section>
+
+    <section id="build">
+      <div class="eyebrow">Engines</div>
+      <h2>BUILD — agentic-app-builder</h2>
+      <p>The software engine. Three modes auto-detected:</p>
+      <div class="grid">
+        <div class="card"><h3>GREENFIELD</h3><p>Build from scratch: interview → design/wireframe → plan → TDD → parallel impl → review.</p></div>
+        <div class="card"><h3>FEATURE</h3><p>Add to an existing codebase from a scoped feature spec.</p></div>
+        <div class="card"><h3>SURGICAL</h3><p>Diagnose &amp; fix a bug/error with reproduction-first debugging.</p></div>
+      </div>
+      <h3>What makes it different</h3>
+      <ul>
+        <li><b>Global dependency-graph scheduler</b> — every task whose deps are met runs in parallel (up to a concurrency cap), spanning all features at once. Milestone gates live <em>inside</em> the DAG; no per-sprint barriers.</li>
+        <li><b>Design routing</b> — picks the best installed design skill (ui-ux-pro-max first) and generates a design system before any UI code.</li>
+        <li><b>Wireframe/demo approval on the dashboard</b> — builds a throwaway <code>demo/index.html</code>, opens it, and collects <em>Approve / Suggest changes</em> on the board before real code.</li>
+        <li><b>TDD</b> (tests before impl, enforced as DAG edges) + <b>two-stage review</b> (spec + quality) per milestone.</li>
+        <li><b>Per-language coding rules</b> injected per code agent (TS/JS/Py/Go/Rust/Java/C#).</li>
+        <li><b>Model tiering</b> — impl agents on the cheap tier, architect/review on the top tier (real cost control).</li>
+      </ul>
+    </section>
+
+    <section id="grow">
+      <div class="eyebrow">Engines</div>
+      <h2>GROW — agentic-worker</h2>
+      <p>The growth engine. Classifies the task domain, decomposes the brief into a task DAG, and runs specialists in parallel on its own scheduler — then merges with a coherence pass.</p>
+      <ul>
+        <li><b>192-persona specialist registry</b> across 15 domains (research, marketing, sales, strategy, content, finance, …), with scored, scoped routing — only the needed persona loads per task.</li>
+        <li><b>Bring-your-own-docs gate</b> — under the suite it reads <code>HANDOFF.json</code> and skips re-interviewing, grounding all growth work in the real product.</li>
+        <li><b>Showcase</b> — merges deliverables into <code>grow/outputs/</code> and generates an interactive <code>showcase.html</code> (searchable, per-doc TOC, copy-code) that auto-opens when ready.</li>
+      </ul>
+    </section>
+
+    <section id="handoff">
+      <div class="eyebrow">Engines</div>
+      <h2>Handoff &amp; the completion gate</h2>
+      <p>Between BUILD and GROW the conductor enforces a <b>deterministic, script-checked gate</b> — GROW never starts on a failed or partial build.</p>
+      <ul>
+        <li><b>Stage 2.5 gate</b> — runs <code>check-build-gate.mjs</code> (reads milestones + <code>RESULT.json</code>); on fail it stops and reports the blocked task. Trusts the script’s exit code, not prose.</li>
+        <li><b>HANDOFF.json</b> — product, features, stack, URLs, decisions, shared memory, and a <code>build_status</code> block — the cold-start brief GROW grows against.</li>
+        <li><b>Session boundary</b> — for a large build, the conductor can recommend resuming GROW in a fresh session from <code>HANDOFF.json</code> to keep context sharp.</li>
+      </ul>
+    </section>
+
+    <section id="dashboard">
+      <div class="eyebrow">Dashboard</div>
+      <h2>Live dashboard</h2>
+      <p>Each phase opens a real-time, zero-dependency board (BUILD on <code>:4317</code>, GROW on <code>:4318</code>) served over SSE. It’s two-way — questions and approvals happen on the board, not the CLI.</p>
+      <div class="grid">
+        <div class="card"><h3>Swarm</h3><p>Live agent cards with role, status, <span class="dotline" style="background:var(--amber)"></span>working / <span class="dotline" style="background:var(--green)"></span>done / <span class="dotline" style="background:var(--red)"></span>blocked, a model-tier badge, and a model-mix summary (predict spend).</p></div>
+        <div class="card"><h3>Plan</h3><p>The dependency graph as an <b>animated flowchart</b> — nodes flow ready → working → done. Plan-approval modal with 🗺 Open Plan.</p></div>
+        <div class="card"><h3>Tests</h3><p>Per-milestone unit results + live Playwright E2E stream when present.</p></div>
+        <div class="card"><h3>Replay</h3><p>Scrub the event log to reconstruct any past moment — auto-populated from status transitions.</p></div>
+      </div>
+      <p><b>Prompts &amp; approvals</b> (interview, plan, wireframe demo) pop as modals on the board via a one-call bridge; the demo opens itself, and you Approve / Suggest changes there. <b>Tokens</b> show real measured spend, split into <em>fresh · cache · out</em> (cache reads are ~10× cheaper, so the headline isn’t misread).</p>
+    </section>
+
+    <section id="personas">
+      <div class="eyebrow">Dashboard</div>
+      <h2>Persona routing</h2>
+      <p>GROW routes each task to a specialist from the shared registry by scoring your task text against persona descriptions (threshold-gated; one persona per task). Preview the pick for any requirement without a run:</p>
+      <pre><code>node ~/.claude/skills/agentic-suite/scripts/route-preview.mjs \
+  "design an SEO strategy and keyword plan for a SaaS" --domains marketing,strategy</code></pre>
+      <p>At runtime the chosen persona shows as a badge on the agent card.</p>
+    </section>
+
+    <section id="preflight">
+      <div class="eyebrow">Operate</div>
+      <h2>Pre-flight — suite-doctor</h2>
+      <p>On a fresh run the conductor auto-runs the doctor; it proceeds only if the environment is sound, else stops with exactly what to fix. Run it yourself anytime:</p>
+      <pre><code>/suite-doctor
+# or
+node ~/.claude/skills/agentic-suite/scripts/suite-doctor.mjs</code></pre>
+      <p>Checks node, both skills, the registry, dashboard ports, write access, <code>suite-state.json</code> integrity, git, and whether the optional hooks are installed. PASS / WARN / FAIL with exit 0 / 1 / 2.</p>
+    </section>
+
+    <section id="hooks">
+      <div class="eyebrow">Operate</div>
+      <h2>Enforcement hooks (opt-in)</h2>
+      <p>The suite runs hook-free by default. For long or unattended runs, install an opt-in pack that turns prose rules into deterministic guards the whole swarm (incl. subagents) can’t skip. They’re <b>dormant unless a run is active</b> and <b>fail-open</b> (a hook bug never breaks your session).</p>
+      <pre><code>node ~/.claude/skills/agentic-suite/scripts/install-hooks.mjs   # --scope user for global
+# then restart Claude Code (hooks load at session start)</code></pre>
+      <table>
+        <tr><th>Hook</th><th>Event</th><th>Guards</th></tr>
+        <tr><td>config-protection</td><td>PreToolUse</td><td>no weakening test/lint/tsconfig configs mid-run (creation allowed; edits to existing blocked)</td></tr>
+        <tr><td>protect-state</td><td>PreToolUse</td><td>no editing <code>.git</code> / settings / the hook &amp; dashboard infra</td></tr>
+        <tr><td>dangerous-bash</td><td>PreToolUse</td><td>no <code>rm -rf /</code>, <code>git push --force</code>, <code>reset --hard</code>, <code>curl|sh</code>, fork bombs</td></tr>
+        <tr><td>circuit-breaker</td><td>PostToolUse</td><td>trips after 5 consecutive tool failures (bounded loops)</td></tr>
+        <tr><td>cost-persist</td><td>PostToolUse</td><td>persists token spend + alerts on a budget breach</td></tr>
+        <tr><td>state-verify</td><td>SessionStart</td><td>resume nudge if a run is mid-flight</td></tr>
+        <tr><td>precompact-snapshot</td><td>PreCompact</td><td>snapshots state before context compaction</td></tr>
+      </table>
+      <p>Escape hatches: <code>plan/state/.allow-config-edit</code>, <code>plan/state/.allow-danger</code>. Remove all with <code>uninstall-hooks.mjs</code>.</p>
+    </section>
+
+    <section id="learning">
+      <div class="eyebrow">Operate</div>
+      <h2>Cross-run learning</h2>
+      <p>Each run distils a few atomic <b>lessons</b> from its signals and user overrides (plan changes, wireframe suggestions, interview overrides) into <code>.agentic-builder/lessons.json</code>, deduped and confidence-weighted. The next run warm-starts from the relevant ones — so the suite gets sharper the more you use it.</p>
+    </section>
+
+    <section id="resume">
+      <div class="eyebrow">Operate</div>
+      <h2>State &amp; resume</h2>
+      <p><code>suite-state.json</code> (conductor) and <code>framework-state.json</code> (each engine) are the source of truth. On a re-run or a fresh session, state is read and the run resumes where it stopped — completed phases skipped, the gate re-checked, GROW resumed from its DAG.</p>
+      <pre><code>/suite-resume        # deterministic briefing: phase, outstanding milestones, next action</code></pre>
+      <div class="note warn"><b>Heads-up.</b> Skill &amp; dashboard-template changes apply to the <em>next fresh run after a Claude Code restart</em> — a running session keeps the old skill in memory, and an in-progress project keeps the template it copied at start.</div>
+    </section>
+
+    <section id="reference">
+      <div class="eyebrow">Operate</div>
+      <h2>Commands &amp; scripts</h2>
+      <div class="kref"><code>/suite-doctor</code><span>Pre-flight environment check (auto-runs at Stage 0; also manual).</span></div>
+      <div class="kref"><code>/suite-resume</code><span>Briefing of an interrupted run + where to continue.</span></div>
+      <div class="kref"><code>scripts/check-build-gate.mjs</code><span>Deterministic BUILD-completion gate (Stage 2.5).</span></div>
+      <div class="kref"><code>scripts/install-hooks.mjs</code><span>Install the opt-in enforcement pack (<code>--scope user</code> for global).</span></div>
+      <div class="kref"><code>scripts/uninstall-hooks.mjs</code><span>Remove the hooks; preserves your other settings.</span></div>
+      <div class="kref"><code>scripts/scan-surface.mjs</code><span>Advisory injection scan of personas + skill/settings/hook files.</span></div>
+      <div class="kref"><code>scripts/route-preview.mjs</code><span>Preview which persona the router picks for a requirement.</span></div>
+      <div class="kref" style="border:none"><code>scripts/suite-resume.mjs</code><span>The resume-briefing helper behind <code>/suite-resume</code>.</span></div>
+      <p style="margin-top:14px">All scripts are zero-dependency Node (<code>.mjs</code>) — cross-platform, no install step.</p>
+    </section>
+
+    <section id="architecture">
+      <div class="eyebrow">More</div>
+      <h2>Architecture</h2>
+      <p>The conductor is deliberately <b>thin</b>: it classifies, sequences, gates, and bridges — it owns no build or growth logic. The two engines do the real work, and a single shared <code>agents/</code> folder holds the registry both resolve via <code>../agents/registry.json</code> (one copy, no duplication).</p>
+      <pre><code>agentic-suite/skills/
+  agents/                shared registry (192 personas, 15 domains) + persona .md
+  conductor/             the BUILD→GROW orchestrator  ("agentic-suite")
+    scripts/  hooks/  commands/   doctor · gate · hooks · scan · resume · route-preview
+  agentic-app-builder/   software engine  → resolves ../agents
+  agentic-worker/        growth engine    → resolves ../agents</code></pre>
+    </section>
+
+    <section id="roadmap">
+      <div class="eyebrow">More</div>
+      <h2>Roadmap</h2>
+      <ul>
+        <li><b>Now:</b> bundled engines + HANDOFF bridge + deterministic gate; dashboard prompts / approval / animated flow / model badges / real-token KPI; opt-in enforcement hooks; security scan; per-language rules; model tiering; lessons ledger; pre-flight doctor; showcase.</li>
+        <li><b>Planned:</b> unified BUILD → GROW dashboard (one board, one timeline); a shared core (scheduler / registry / memory / dashboard) so both engines become thin frontends.</li>
+      </ul>
+      <p style="margin-top:18px;color:var(--dim);font:600 12px var(--mono)">In-session · no API key · MIT</p>
+    </section>
+
+  </div>
+</main>
+
+<script>
+  // scroll-spy
+  const links=[...document.querySelectorAll("#nav a")];
+  const map={}; links.forEach(a=>map[a.getAttribute("href").slice(1)]=a);
+  const obs=new IntersectionObserver(es=>{es.forEach(e=>{ if(e.isIntersecting){
+    links.forEach(l=>l.classList.remove("active")); const a=map[e.target.id]; if(a)a.classList.add("active"); }});},
+    {rootMargin:"-45% 0px -50% 0px"});
+  document.querySelectorAll("section[id]").forEach(s=>obs.observe(s));
+  // theme
+  const root=document.documentElement;
+  try{ if(localStorage.getItem("docs-theme")==="light")root.dataset.theme="light"; }catch(_){}
+  document.getElementById("theme").onclick=()=>{ const t=root.dataset.theme==="light"?"dark":"light"; root.dataset.theme=t; try{localStorage.setItem("docs-theme",t);}catch(_){}};
+</script>
+</body>
+</html>
