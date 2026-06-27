@@ -477,10 +477,10 @@ and go straight to Stage 2.5.
         --question "Click 🖼 Open Demo to view the wireframe, then approve or suggest changes." \
         --options "Approve,Suggest changes" --open-url "file:///<ABSOLUTE path to demo/index.html>" --timeout 600
    ```
-   This pops the modal **with an 🖼 Open Demo button** (opens the demo in the OS browser via the server's
-   `/open` route — works for `file://` on Windows) AND waits for the click — so the demo review + approval
-   happen on the board, not the CLI. Use the ABSOLUTE path. Fall back to `AskUserQuestion` only on its
-   non-zero exit.
+   This **auto-opens the demo in the OS browser immediately** (ask-dashboard opens `--open-url` foreground,
+   so it reliably surfaces — handles `file://` + spaces on Windows) AND pops the modal **with an 🖼 Open Demo
+   button** to re-open it, AND waits for the click — so the demo review + approval happen on the board, not
+   the CLI. Use the ABSOLUTE path. Fall back to `AskUserQuestion` only on its non-zero exit.
 4. **Loop:** if the answer is "Suggest changes", ask a quick free-text follow-up on the board
    (`ask-dashboard.mjs --id wireframe-notes --question "What should change?"`), edit `demo/index.html` to
    match, then re-run the approve call (the 🖼 Open Demo button reopens the updated demo). Repeat until the

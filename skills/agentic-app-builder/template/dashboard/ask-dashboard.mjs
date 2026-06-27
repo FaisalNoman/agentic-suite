@@ -21,6 +21,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -48,6 +49,26 @@ function writeState(s) { fs.mkdirSync(path.dirname(STATE), { recursive: true });
 const s0 = readState();
 s0.prompt = { id, title, question, ...(options ? { options } : {}), ...(openPlan ? { openPlan: true } : {}), ...(openUrl ? { openUrl } : {}), answered: false };
 writeState(s0);
+
+// Open the review URL (e.g. the wireframe demo) NOW, foreground — this Bash call
+// runs in the foreground so the open reliably surfaces a window, unlike the
+// dashboard server's background /open route (which often can't reach the desktop).
+// The board's "Open Page" button stays as a best-effort re-open.
+if (openUrl) {
+  try {
+    const plat = process.platform;
+    let target = openUrl;
+    // On Windows, open the local path directly (file:// + spaces is flaky with `start`).
+    if (plat === "win32" && /^file:\/\//i.test(openUrl)) {
+      target = decodeURIComponent(openUrl.replace(/^file:\/\/\//i, "").replace(/^file:\/\//i, "")).replace(/\//g, "\\");
+    }
+    const cmd = plat === "win32" ? "cmd" : plat === "darwin" ? "open" : "xdg-open";
+    const args = plat === "win32" ? ["/c", "start", "", target] : [target];
+    const child = spawn(cmd, args, { detached: true, stdio: "ignore" });
+    child.on("error", () => {});
+    child.unref();
+  } catch { /* best-effort */ }
+}
 
 // ── 2. poll answers.json until the user clicks (the orchestrator is blocked here
 //        on this Bash call, so it cannot overwrite agents.json mid-wait → no race) ──
