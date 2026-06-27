@@ -355,9 +355,13 @@ There are NO sprint buckets and NO sprint barriers. Instead:
 unmeasurable, or example-free → fix them with the user before building. Then present the plan for
 approval, and make the FLOW visible two ways:
 1. **Write the `dag` object to `agents.json`** (nodes+edges+milestones — schema in "Dashboard
-   interaction"). This renders the live arrow flowchart in the **Plan tab** (header → Plan). Do this
-   every run — it IS the plan view; the user reviews the flow there. The approval modal does NOT show
-   the flow.
+   interaction"). This renders the live arrow flowchart in the **Plan tab** (header → Plan).
+   **MANDATORY, non-skippable, BEFORE the approval prompt** — publish the `dag` so the Plan tab is
+   already populated when the user clicks 🗺 Open Plan. A run with no `dag` written = an empty Plan tab
+   and no animated flow (the reported "no flow" symptom). Then, **every scheduler tick, refresh each
+   node's `status`** (`ready→working→done`/`blocked`) in `agents.json` so the flowchart animates as the
+   swarm progresses — the animation IS the status updates flowing through the locked graph. The approval
+   modal does NOT show the flow; it lives in the Plan tab.
 2. The approval `prompt` is **just the question + options** (no flow in the modal). Phrase the question
    to point at the Plan tab, e.g. `"Open the Plan tab to review the build flow. Start building?"`.
    `prompt.plan` is optional and not shown in the modal — put the flow in the `dag` (Plan tab) instead.
@@ -466,12 +470,20 @@ and go straight to Stage 2.5.
    that feature's key screen(s)/states. Keep it static and instantly openable. If
    `plan/docs/DESIGN-SYSTEM.md` exists (router step 0), apply its palette/typography/style to the
    wireframe so the user approves the actual intended look, not greybox boxes.
-3. Show it to the user: print the path (`demo/index.html`) and open it (reuse the OS-open approach the
-   dashboard uses, or just tell them to open it). Then ask with `AskUserQuestion`:
-   **"Approve this wireframe to start building, or suggest changes?"** (Approve / Suggest changes).
-4. **Loop:** if the user suggests changes, edit `demo/index.html` to match, re-open, and ask again.
-   Repeat until the user **approves**. Update the `wireframe` agent's `detail` each round
-   ("revision 2 — moved the toolbar, added empty state").
+3. Show it + get approval **ON THE DASHBOARD** (rule 12) — ONE Bash call (Bash `timeout: 600000`):
+   ```
+   node plan/dashboard/ask-dashboard.mjs --id approve-wireframe --title "Approve the demo?" \
+        --question "Click 🖼 Open Demo to view the wireframe, then approve or suggest changes." \
+        --options "Approve,Suggest changes" --open-url "file:///<ABSOLUTE path to demo/index.html>" --timeout 600
+   ```
+   This pops the modal **with an 🖼 Open Demo button** (opens the demo in the OS browser via the server's
+   `/open` route — works for `file://` on Windows) AND waits for the click — so the demo review + approval
+   happen on the board, not the CLI. Use the ABSOLUTE path. Fall back to `AskUserQuestion` only on its
+   non-zero exit.
+4. **Loop:** if the answer is "Suggest changes", ask a quick free-text follow-up on the board
+   (`ask-dashboard.mjs --id wireframe-notes --question "What should change?"`), edit `demo/index.html` to
+   match, then re-run the approve call (the 🖼 Open Demo button reopens the updated demo). Repeat until the
+   user **approves**. Update the `wireframe` agent's `detail` each round ("revision 2 — moved the toolbar").
 5. On approval: mark the `wireframe` agent `done`, note the approved revision, and continue to
    Stage 2.5 → the build loop. The real implementation should match the approved wireframe's layout.
 
