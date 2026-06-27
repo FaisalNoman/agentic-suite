@@ -82,8 +82,8 @@ a `build/` working area so its `plan/` is isolated.
 **Dashboard safety net.** agentic-app-builder must launch its board on :4317 by copying the template from
 **its own skill base dir** (`<agentic-app-builder-base>/template/dashboard/`) → `build/plan/dashboard/`.
 If `build/plan/state/dashboard.json` doesn't appear shortly after it starts (a nested-run path slip),
-copy the template yourself from the agentic-app-builder skill base and run `node build/plan/dashboard/server.mjs`.
-Then read the `url` from `build/plan/state/dashboard.json` and open THAT http URL — **never open
+copy the template yourself from the agentic-app-builder skill base, run `node build/plan/dashboard/server.mjs --no-open`,
+then open it with the helper (foreground): `node build/plan/dashboard/open-dashboard.mjs` — **never open
 `index.html` as a file (`file://`)**; the file has no server, so the board is dead. Never let the BUILD
 phase proceed with no live board.
 
@@ -162,8 +162,8 @@ the product brief; its dashboard opens on :4318."
 Invoke the **agentic-worker** skill (Skill tool) with `grow_brief`, working in `grow/`. **Dashboard safety
 net:** agentic-worker must launch its board on :4318 by copying the template from its own skill base dir
 (`<agentic-worker-base>/template/dashboard/`) → `grow/plan/dashboard/`; if `grow/plan/state/dashboard.json`
-doesn't appear, copy it yourself and run `node grow/plan/dashboard/server.mjs`, then open the http `url`
-from `grow/plan/state/dashboard.json` (**never the `index.html` file**). Because
+doesn't appear, copy it yourself, run `node grow/plan/dashboard/server.mjs --no-open`, then open it with
+`node grow/plan/dashboard/open-dashboard.mjs` (**never the `index.html` file**). Because
 `grow/plan/docs/HANDOFF.json` is present, agentic-worker's docs gate uses it as the product context and
 SKIPS re-interviewing — its SEO/marketing/sales/research agents work against the real product (features,
 stack, URLs). Its specialist-registry router (P6) picks the business personas from the shared

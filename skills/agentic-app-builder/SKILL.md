@@ -176,20 +176,18 @@ copy `<skill-base>/template/dashboard/` → `./plan/dashboard/`. Do NOT assume `
 under the cwd — that fails when this skill runs **nested** (e.g. invoked by the agentic-suite conductor),
 where the cwd is the user's project but the template lives in the skill install dir. This step is
 MANDATORY in EVERY run, including nested ones — never skip it.
-**Order is fixed — never shortcut it:** (1) START THE SERVER first — `node plan/dashboard/server.mjs`
-(background); (2) wait for `plan/state/dashboard.json` and read its `url` (`http://localhost:<port>`);
-(3) open THAT http URL. **NEVER open `index.html` as a file (`file://…`)** — a static file open has no
-server, so SSE never connects and the board sits dead/empty. The board ONLY works as the served http
-page. "Open the dashboard" = start the server, then open the http URL — not the HTML file.
+**Order is fixed — never shortcut it:**
+1. **START THE SERVER (background), suppressing its own flaky open:** `node plan/dashboard/server.mjs --no-open`
+2. **OPEN THE BOARD with the bundled helper as a FOREGROUND Bash call (MANDATORY):**
+   `node plan/dashboard/open-dashboard.mjs` — it polls for `plan/state/dashboard.json`, then opens the
+   real `http://localhost:<port>` URL in the OS browser (cross-platform). A foreground open reliably
+   surfaces a window; the server's background auto-open does NOT, which is why we suppress it with
+   `--no-open` and use the helper instead. Do this every run — never assume the server opened it.
+3. **NEVER open `index.html` as a file (`file://…`)** — a static file open has no server, so SSE never
+   connects and the board sits dead/empty. The board ONLY works as the served http page.
 
 It auto-selects a free port (base 4317, steps up if busy) and writes `plan/state/dashboard.json` with
-`{port, url}` within ~1 second. The server also attempts to auto-open the browser, BUT when it's
-launched as a background process that open often doesn't reach the user's desktop session — so **you,
-the orchestrator, ALSO open it explicitly** as your own action (don't assume the server did it, and
-don't tell the user to do it manually):
-1. Read `plan/state/dashboard.json` for the real `{url}` (poll briefly until it exists).
-2. Run the OS open command yourself: Windows `cmd /c start "" {url}` · macOS `open {url}` ·
-   Linux `xdg-open {url}`. (If it errors, THEN print "open this URL: {url}" as the fallback.)
+`{port, url}` within ~1 second. If `open-dashboard.mjs` prints "open manually", surface that URL to the user.
 3. Print one line: "Dashboard live: {url}".
 Then write the initial `plan/state/agents.json` immediately (so the board isn't empty), seeded with the
 mode's first card (`survey`/`interview`/`diagnose`) set to `working`.

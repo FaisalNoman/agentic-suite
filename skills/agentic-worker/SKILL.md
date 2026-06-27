@@ -70,12 +70,14 @@ Copy the dashboard template → `plan/dashboard/`, then start: `node plan/dashbo
 **Resolve the template from THIS skill's base directory** (absolute path in the skill header): copy
 `<skill-base>/template/dashboard/` → `./plan/dashboard/`. Do NOT assume it sits under the cwd — that
 breaks when run **nested** (e.g. by the agentic-suite conductor). Mandatory in every run, including nested.
-**Order is fixed:** (1) START THE SERVER — `node plan/dashboard/server.mjs` (background); (2) wait for
-`plan/state/dashboard.json`, read its `url`; (3) open THAT `http://localhost:<port>` URL. **NEVER open
-`index.html` as a file (`file://…`)** — without the server there is no SSE and the board is dead.
+**Order is fixed:** (1) START THE SERVER (background, suppress its flaky open): `node plan/dashboard/server.mjs --no-open`;
+(2) **OPEN THE BOARD with the bundled helper as a FOREGROUND Bash call (MANDATORY):**
+`node plan/dashboard/open-dashboard.mjs` — it polls `plan/state/dashboard.json` then opens the real
+`http://localhost:<port>` URL (cross-platform). A foreground open reliably surfaces a window; the server's
+background auto-open does not (hence `--no-open` + the helper). (3) **NEVER open `index.html` as a file
+(`file://…`)** — without the server there is no SSE and the board is dead.
 It auto-selects a free port (base 4318, steps up if busy) and writes `plan/state/dashboard.json`.
-Open it: Windows `cmd /c start "" {url}` · macOS `open {url}` · Linux `xdg-open {url}`.
-Print: "Dashboard live: {url}".
+If the helper prints "open manually", surface that URL. Print: "Dashboard live: {url}".
 
 **Also copy the showcase generator** the same way: `<skill-base>/template/showcase/` → `./plan/showcase/`
 (nothing to start now — it runs once at Stage 5). Same nested-safe base-dir resolution as the dashboard.
