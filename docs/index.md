@@ -20,8 +20,6 @@
 
 <img width="1522" height="802" alt="image" src="https://github.com/user-attachments/assets/18724d2e-3a1d-48d4-9cb9-d8c33ae868ed" />
 
-![agentic-suite live dashboard](../assets/dashboard.png)
-
 ```
 request ─▶ pre-flight ─▶ classify ─▶ split ─▶ [BUILD] ─▶ gate ─▶ HANDOFF.json ─▶ [GROW] ─▶ showcase
 ```
@@ -148,7 +146,7 @@ Three modes auto-detected:
 ---
 
 ## Live dashboard
-
+![agentic-suite live dashboard](../assets/dashboard.png)
 Each phase opens a real-time, zero-dependency board (BUILD `:4317`, GROW `:4318`) over SSE. Two-way — questions and
 approvals happen on the board, not the CLI.
 
