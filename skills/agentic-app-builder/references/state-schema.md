@@ -101,6 +101,9 @@ The orchestrator rewrites this whole file on each update; the dashboard server s
 - `label` = task/feature id; `file` = the one file that agent owns.
 - `persona` (optional) — the routed specialist `{ name, emoji, domain }` from `agents/registry.json`
   (P6, build domains only — see `references/agent-registry.md`). Card shows name + emoji; absent → plain role.
+- `model` (optional) — the model tier this agent was dispatched on (`opus`/`sonnet`/`haiku`, or the
+  session model if untiered), from `agent-contracts.md` §Model tiering. The dashboard renders it as a
+  tier-colored badge on the card + a model-mix summary, so the user can predict spend.
 - `detail` = **live "what it's doing right now"** — update it as the agent progresses (foreground only).
 - `note` = short final result line.
 - Optional **verbose-only** card fields (rendered only when the user toggles 🔍 Verbose; all best-effort):

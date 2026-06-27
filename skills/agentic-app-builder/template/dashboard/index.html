@@ -168,6 +168,10 @@ header{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px 22px
 .card .av svg{width:19px;height:19px}
 .card .role{font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:var(--role)}
 .card .label{font-size:14px;font-weight:600;margin:1px 0}
+.card .model{display:inline-block;margin-left:6px;font-family:var(--mono);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:0 5px;border-radius:5px;border:1px solid currentColor;opacity:.9;vertical-align:middle}
+.model.opus{color:#f85149} .model.sonnet{color:#f0c674} .model.haiku{color:#22c55e} .model.session{color:var(--dim)}
+.mix{display:flex;gap:7px;align-items:center;font-family:var(--mono);font-size:10px}
+.mix .m{padding:1px 6px;border-radius:5px;border:1px solid currentColor;font-weight:700}
 .card .file{font-size:11.5px;color:var(--dim);font-family:var(--mono);word-break:break-all}
 .card .detail{margin-top:10px;font-size:12px;color:var(--ink-2);line-height:1.45;
   background:color-mix(in srgb,var(--bg-deep) 50%,transparent);border:1px solid var(--glass-line-2);
@@ -447,6 +451,7 @@ const ICON = {
   orchestrator:'<path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6Z"/>'
 };
 const ROLE_VAR = r => `var(--r-${(r||"impl").replace(/[^a-z-]/g,"")||"impl"})`;
+const MODEL_TIER = m => { m=String(m||"").toLowerCase(); return /opus/.test(m)?"opus":/sonnet/.test(m)?"sonnet":/haiku/.test(m)?"haiku":"session"; };
 function icon(role){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[role]||ICON.impl}</svg>`;}
 
 /* ── stall detection ── */
@@ -507,7 +512,7 @@ function renderSwarm(s){
     return `<article class="card ${st}" style="--role:${ROLE_VAR(a.role)}">
       <span class="st">${esc(st)}</span>
       <div class="top"><div class="av">${icon(a.role)}</div>
-        <div style="min-width:0"><div class="role">${esc(a.role||"")}${a.persona&&a.persona.name?` · ${esc(a.persona.emoji||"")} ${esc(a.persona.name)}`:""}</div>
+        <div style="min-width:0"><div class="role">${esc(a.role||"")}${a.persona&&a.persona.name?` · ${esc(a.persona.emoji||"")} ${esc(a.persona.name)}`:""}${a.model?`<span class="model ${MODEL_TIER(a.model)}" title="model tier for this agent">${esc(a.model)}</span>`:""}</div>
         <div class="label">${esc(a.label||a.id||"")}</div>
         ${file?`<div class="file">${esc(file)}</div>`:''}</div></div>${det}${more}
     </article>`;
@@ -516,9 +521,15 @@ function renderSwarm(s){
   $("k-working").textContent=w; $("k-done").textContent=d; $("k-blocked").textContent=b;
   $("k-working-m").textContent=w===1?"agent active":"agents active";
   $("tab-swarm-n").textContent=agents.length;
-  // role legend
+  // role legend + model-tier mix (cost signal: opus≈expensive, haiku≈cheap)
   const roles=[...new Set(agents.map(a=>a.role).filter(Boolean))];
-  $("legend").innerHTML=roles.map(r=>`<span><i style="background:${ROLE_VAR(r)}"></i>${esc(r)}</span>`).join("");
+  const mix={opus:0,sonnet:0,haiku:0,session:0};
+  agents.forEach(a=>{ if(a.model) mix[MODEL_TIER(a.model)]++; });
+  const mixHtml=(mix.opus||mix.sonnet||mix.haiku||mix.session)
+    ? `<span class="mix" title="model tier mix across agents — predict spend (opus≫sonnet≫haiku)">`+
+      [["opus","O"],["sonnet","S"],["haiku","H"],["session","·"]].filter(([k])=>mix[k])
+        .map(([k,l])=>`<span class="m ${k}">${l}×${mix[k]}</span>`).join("")+`</span>` : "";
+  $("legend").innerHTML=roles.map(r=>`<span><i style="background:${ROLE_VAR(r)}"></i>${esc(r)}</span>`).join("")+mixHtml;
 }
 
 /* ── file-ownership locks strip (P0) ── */

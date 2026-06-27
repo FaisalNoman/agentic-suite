@@ -14,7 +14,7 @@ Runs in-session under Claude Code. No API key. No separate service. Uses your su
 
 1. **Domain-first.** Before any planning, detect the task's domain(s) using `references/domain-detector.md`. The domain controls which agents run and which review criteria apply. Never skip domain detection.
 
-2. **Registry-driven dispatch.** Every agent spawned must be in `references/agent-registry.json`. Never spawn a generalist subagent outside the registry. The registry provides `agent_id`, `prompt_template`, `context_budget_tokens`, `scheduler_role`, and `output_type` for every task.
+2. **Registry-driven dispatch.** Every agent spawned must be in `references/agent-registry.json`. Never spawn a generalist subagent outside the registry. The registry provides `agent_id`, `prompt_template`, `context_budget_tokens`, `scheduler_role`, `model` (the cost tier — pass to the Agent tool + onto the card), and `output_type` for every task.
 
 3. **Persist state.** Write to `plan/state/framework-state.json` after every phase. On re-run, read it, summarise progress, and resume — skip done tasks, re-queue interrupted ones.
 

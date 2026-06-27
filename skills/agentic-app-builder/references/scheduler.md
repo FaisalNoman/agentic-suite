@@ -89,6 +89,10 @@ LOOP (until ready_queue empty AND in_flight empty):
           · apply context_slice (Improvement 1)
           · select a specialist persona via references/agent-registry.md (build domains only; scope
             guard) → inject it; no match → plain general-purpose
+          · resolve the model TIER for the node's role from references/agent-contracts.md §Model tiering
+            (architect/planner → top · spec-review/quality-review → sonnet+ · fix → sonnet · tdd →
+            sonnet/haiku · impl → haiku · role absent → inherit session model) and set it as the Agent
+            tool `model` param at dispatch. Record it on the agent's card as `model` (for the dashboard).
           · check cache (Improvement 2) → HIT: mark done now, add to done_set, unlock dependents, skip
           · MISS: add to dispatch_batch
       - GATE nodes (gate-/review-/commit-): these are run by YOU (orchestrator), not subagents —
@@ -96,6 +100,7 @@ LOOP (until ready_queue empty AND in_flight empty):
     Move taken nodes ready_queue → in_flight
     Save scheduler state; update agents.json (all dispatch_batch → "working")
     Emit ALL dispatch_batch Agent tool calls in ONE assistant message   ← mandatory (rule 7)
+      (each Agent call carries its resolved `model` tier param — impl agents on the cheap tier are the bulk)
     (Gate nodes that came up this turn: execute them inline; they don't count against the agent cap
      unless they spawn subagents.)
 

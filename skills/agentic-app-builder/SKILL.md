@@ -813,7 +813,7 @@ per task, each gate, each commit. On restart, read it, print progress, resume.
 - `references/context-utils.md` — context compression: what each agent type receives.
 - `references/cache-policy.md` — agent result caching: when to skip spawning.
 - `references/scheduler.md` — the GLOBAL dependency-graph scheduler + milestone-gate nodes (the heart of this skill).
-- `references/agent-contracts.md` — JSON output schemas for each agent type.
+- `references/agent-contracts.md` — **load at Stage 3 dispatch (not just for reply parsing)**. JSON output schemas per agent type + **§Model tiering** (the per-role `model` the scheduler passes to each Agent call — cost control).
 - `references/systematic-debugging.md` — **load for every fix agent (Phase 7)**. Four-phase root cause protocol. Replaces guess-and-check.
 - `references/rules/` — **load the ONE matching `<lang>.md` per code agent (Stage 3 dispatch)**. Compact per-language coding standards (ts/js/py/go/rust/java/csharp + generic); injected scoped, checked by review.
 - `references/code-review-protocol.md` — **load for Phase 8 review dispatch**. Two-stage spec compliance → quality review. Contains impl agent self-review checklist.

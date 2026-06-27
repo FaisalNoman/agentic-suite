@@ -65,7 +65,8 @@ LOOP:
      For each task: select a specialist persona via references/specialist-registry.md (inject it; none →
        plain generic agent) and pass the agent's tier `model` from agent-registry.json.
      Move dispatched tasks: ready_queue → in_flight.
-     Write agents.json card per task with status: "working" (incl. `persona`) BEFORE the Agent calls.
+     Write agents.json card per task with status: "working" (incl. `persona` and `model` — the tier from
+       agent-registry.json, so the dashboard shows the model badge) BEFORE the Agent calls.
      Append agent.start + lock.claim events to events.jsonl (references/events-log.md).
 
   3. AWAIT — wait for all in_flight agents to return.
