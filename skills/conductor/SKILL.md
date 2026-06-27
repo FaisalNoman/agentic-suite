@@ -229,4 +229,5 @@ suite's SUITE-PLAN.)
 - `hooks/suite-hook.mjs` + `scripts/install-hooks.mjs` / `uninstall-hooks.mjs` — opt-in Core-3 enforcement pack (config-protection, dangerous-bash, circuit-breaker); dormant unless a run is active.
 - `scripts/suite-resume.mjs` + `commands/suite-resume.md` — deterministic resume briefing for an interrupted run.
 - `scripts/scan-surface.mjs` — advisory security scan of the persona registry + skill/settings/hook files for injection patterns; writes `scan-report.json`.
+- `scripts/route-preview.mjs` — preview which specialist persona the router would pick for a requirement (mirrors the live specialist-router scoring); read-only demonstrator.
 - `scripts/suite-doctor.mjs` + `commands/suite-doctor.md` — pre-flight environment check (node, skills, registry, ports, state, write access); PASS/WARN/FAIL, exit 0/1/2. Advisory.
