@@ -188,6 +188,13 @@ for global). The hooks are **dormant unless a suite run is active** in the cwd, 
 (`plan/state/.allow-config-edit`, `plan/state/.allow-danger`). Remove with `scripts/uninstall-hooks.mjs`.
 Only offer/run this when the user opts in — never auto-install.
 
+**Security-surface scan (advisory).** The 192-persona registry + skill/settings/hook files are an injection
+surface (each persona body is loaded into an agent prompt). `node <conductor-base>/scripts/scan-surface.mjs`
+scans them for prompt-injection patterns (ignore-instructions, exfil URLs, secret-harvest, hidden
+directives, hardcoded secrets, zero-width unicode), writes `scan-report.json`, and exits 1 on a high finding.
+It NEVER blocks a run — it's a heads-up, useful after adding your own personas or third-party skills. Offer
+it at setup or when the user adds to the registry.
+
 ## Resume an interrupted run
 
 On a crash or a fresh session, run `node <conductor-base>/scripts/suite-resume.mjs` (or the `/suite-resume`
@@ -207,3 +214,4 @@ suite's SUITE-PLAN.)
 - `scripts/check-build-gate.mjs` — deterministic Stage 2.5 BUILD-completion gate (zero-dep node); writes `suite-state-gate.json`, exits 0/1.
 - `hooks/suite-hook.mjs` + `scripts/install-hooks.mjs` / `uninstall-hooks.mjs` — opt-in Core-3 enforcement pack (config-protection, dangerous-bash, circuit-breaker); dormant unless a run is active.
 - `scripts/suite-resume.mjs` + `commands/suite-resume.md` — deterministic resume briefing for an interrupted run.
+- `scripts/scan-surface.mjs` — advisory security scan of the persona registry + skill/settings/hook files for injection patterns; writes `scan-report.json`.
