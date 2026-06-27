@@ -568,11 +568,12 @@ function fmtTok(n){ n=Number(n)||0; if(n>=1e6)return (n/1e6).toFixed(n>=1e7?0:1)
   if(n>=1e3)return (n/1e3).toFixed(n>=1e4?0:1)+"k"; return String(Math.round(n)); }
 function renderTokens(s){
   // prefer explicit aggregate s.tokens {total,in,out}; else sum per-agent a.tokens
-  let tin=0,tout=0,total=0,have=false;
+  let tin=0,tout=0,total=0,have=false,fresh=null,cache=null;
   const t=s.tokens;
   if(t && typeof t==="object"){
     tin=Number(t.in)||0; tout=Number(t.out)||0;
     total=Number(t.total)|| (tin+tout); have=true;
+    if(t.in_fresh!=null){ fresh=Number(t.in_fresh)||0; cache=(Number(t.cache_read)||0)+(Number(t.cache_create)||0); }
   }
   if(!have){
     (s.agents||[]).forEach(a=>{ const at=a.tokens;
@@ -583,8 +584,12 @@ function renderTokens(s){
   }
   $("k-tokens").textContent = have ? fmtTok(total) : "0";
   const tag = (t && t.measured) ? " · run total" : "";
-  $("k-tokens-m").textContent = (tin||tout) ? `in ${fmtTok(tin)} · out ${fmtTok(tout)}${tag}`
-    : (have ? "total consumed" : "awaiting reports");
+  // Break out cache reads — they dominate the count but are ~10x cheaper than fresh input,
+  // so the headline total isn't misread as expensive throughput.
+  const el=$("k-tokens-m");
+  if(fresh!=null){ el.textContent=`fresh ${fmtTok(fresh)} · cache ${fmtTok(cache)} · out ${fmtTok(tout)}${tag}`;
+    el.title="fresh = new input · cache = re-read cached context (~10x cheaper) · out = generated"; }
+  else { el.textContent=(tin||tout)?`in ${fmtTok(tin)} · out ${fmtTok(tout)}${tag}`:(have?"total consumed":"awaiting reports"); el.title=""; }
 }
 
 /* ── activity log (s.log if present, else synthesized) ── */

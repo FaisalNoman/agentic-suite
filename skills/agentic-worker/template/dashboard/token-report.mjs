@@ -42,7 +42,7 @@ export function computeTokens(projectRoot, sinceISO) {
   let sinceMs = sinceISO ? Date.parse(sinceISO) : 0;
   if (Number.isNaN(sinceMs)) sinceMs = 0;
 
-  let inp = 0, out = 0;
+  let fresh = 0, cacheRead = 0, cacheCreate = 0, out = 0;
   for (const f of files) {
     let txt;
     try { txt = fs.readFileSync(path.join(dir, f), "utf8"); } catch { continue; }
@@ -56,15 +56,19 @@ export function computeTokens(projectRoot, sinceISO) {
         const t = Date.parse(j.timestamp || "");
         if (!Number.isNaN(t) && t < sinceMs) continue;
       }
-      // input side bills fresh input + cache creation + (cheap) cache reads —
-      // include all three so the figure reflects true throughput, like ccusage.
-      inp += (Number(u.input_tokens) || 0)
-           + (Number(u.cache_read_input_tokens) || 0)
-           + (Number(u.cache_creation_input_tokens) || 0);
+      // Keep the three input components SEPARATE — cache reads (re-reading the
+      // cached context each turn) dominate the raw count but are ~10x cheaper
+      // than fresh input, so lumping them inflates "in" misleadingly.
+      fresh += Number(u.input_tokens) || 0;
+      cacheRead += Number(u.cache_read_input_tokens) || 0;
+      cacheCreate += Number(u.cache_creation_input_tokens) || 0;
       out += Number(u.output_tokens) || 0;
     }
   }
-  return { in: inp, out, total: inp + out };
+  const inAll = fresh + cacheRead + cacheCreate;
+  // `in`/`total` kept for back-compat (sum of all input incl. cache); granular
+  // fields let the dashboard show fresh vs cache vs out.
+  return { in: inAll, in_fresh: fresh, cache_read: cacheRead, cache_create: cacheCreate, out, total: inAll + out };
 }
 
 // CLI — guard works cross-platform (Windows file:// URL vs backslash argv path)
