@@ -162,6 +162,30 @@ produced (the growth deliverables and where they live). Point the user at both d
 for the full audit trail. agentic-worker also generates `grow/outputs/showcase.html` — an interactive page
 of every GROW deliverable; surface that path prominently as the one-stop view of the growth work.
 
+## Optional hardening (hooks) — opt-in, off by default
+
+The suite runs hook-free by default (zero-config, in-session). For a long or unattended run, the user can
+install an **opt-in Core-3 enforcement pack** that turns three prose rules into deterministic guards the
+swarm (incl. subagents) cannot skip:
+
+- **config-protection** (PreToolUse) — blocks edits to test/lint/format/tsconfig configs mid-run, so an
+  agent fixes the code to go green instead of weakening the tooling.
+- **dangerous-bash** (PreToolUse) — blocks `rm -rf` on absolute/home paths, `git push --force`,
+  `git reset --hard`, `curl|sh`, etc. during a run.
+- **circuit-breaker** (PostToolUse) — trips after 5 consecutive tool failures, enforcing the "bounded
+  loops" rule.
+
+Install (project-scoped, reversible): `node <conductor-base>/scripts/install-hooks.mjs` (add `--scope user`
+for global). The hooks are **dormant unless a suite run is active** in the cwd, and escape hatches exist
+(`plan/state/.allow-config-edit`, `plan/state/.allow-danger`). Remove with `scripts/uninstall-hooks.mjs`.
+Only offer/run this when the user opts in — never auto-install.
+
+## Resume an interrupted run
+
+On a crash or a fresh session, run `node <conductor-base>/scripts/suite-resume.mjs` (or the `/suite-resume`
+command) for a deterministic briefing — current phase, outstanding milestones, dashboards, next action —
+then continue per Operating Rule 6. Resume; do not rebuild a completed phase.
+
 ## Dashboards (v1 — sequential takeover)
 
 BUILD uses agentic-app-builder's board (:4317); GROW uses agentic-worker's (:4318). The conductor announces
@@ -173,3 +197,5 @@ suite's SUITE-PLAN.)
 - `references/prompt-split.md` — intent classifier + how to split one request into build_brief + grow_brief.
 - `references/handoff-contract.md` — `HANDOFF.json` schema, how to synthesize it from the build, how GROW consumes it.
 - `scripts/check-build-gate.mjs` — deterministic Stage 2.5 BUILD-completion gate (zero-dep node); writes `suite-state-gate.json`, exits 0/1.
+- `hooks/suite-hook.mjs` + `scripts/install-hooks.mjs` / `uninstall-hooks.mjs` — opt-in Core-3 enforcement pack (config-protection, dangerous-bash, circuit-breaker); dormant unless a run is active.
+- `scripts/suite-resume.mjs` + `commands/suite-resume.md` — deterministic resume briefing for an interrupted run.
