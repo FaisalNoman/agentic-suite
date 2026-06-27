@@ -52,6 +52,12 @@ Then prompt, e.g.:
 
 The conductor builds the app, hands off, and produces the growth deliverables against it.
 
+**You don't need to run anything first.** On a fresh run the conductor auto-runs a pre-flight check
+(`scripts/suite-doctor.mjs` — node, skills, registry, ports, write access, state) and only proceeds if the
+environment is sound; on a blocking failure it stops and tells you exactly what to fix. To run it yourself
+anytime: `/suite-doctor` (or `node ~/.claude/skills/agentic-suite/scripts/suite-doctor.mjs` from your
+project folder).
+
 ## Status
 
 - **Phase 1 (this release):** all three skills bundled in one install; conductor + `HANDOFF.json` bridge; sequential dashboards (:4317 → :4318).

@@ -33,13 +33,23 @@ to running whichever is present.)
    Otherwise re-run the Stage 2.5 gate (it is cheap + deterministic); on fail, resume BUILD
    (agentic-app-builder crash-resumes from its own state).
 
-## STAGE 0 — Classify intent (read `references/prompt-split.md`)
+## STAGE 0 — Pre-flight + classify intent (read `references/prompt-split.md`)
 
-**First run only (no `suite-state.json` yet):** recommend the user run `/suite-doctor` (or
-`node <base>/scripts/suite-doctor.mjs`) to validate their environment (node, skills, registry, ports,
-write access, state integrity). Advisory — mention it once, do NOT block classification on it.
+**Step 0 — Pre-flight (AUTOMATIC, first run only — no `suite-state.json` yet). The conductor runs this
+itself; the user does NOT need to know about it.** As your FIRST action, run the doctor as a Bash call
+(resolve the path from THIS skill's base dir, the same way the dashboard template is resolved — nested-safe):
+```
+node "<agentic-suite-base>/scripts/suite-doctor.mjs"
+```
+Announce it: "Pre-flight check…". Then act on the exit code / table:
+- **exit 2 (❌ FAIL)** → **STOP. Do not classify or build.** Report the failing checks + how to fix each
+  (the doctor prints them), and wait for the user to fix + retry.
+- **exit 1 (⚠️ WARN)** → note the warnings in one line, then continue.
+- **exit 0 (✅)** → continue silently.
+On a resume (`suite-state.json` exists) skip Step 0 — the environment already ran once. The user can also
+run `/suite-doctor` manually anytime, but they never have to: this step makes it automatic.
 
-Classify the request into `{ needs_build, needs_grow, build_brief, grow_brief }`.
+**Step 1 — Classify** the request into `{ needs_build, needs_grow, build_brief, grow_brief }`.
 
 - `needs_build && !needs_grow` → invoke the `agentic-app-builder` skill with the whole request. Stop.
 - `needs_grow && !needs_build` → invoke the `agentic-worker` skill with the whole request. Stop.
