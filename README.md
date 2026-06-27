@@ -14,9 +14,10 @@
 
 </div>
 
-> agentic-suite is a conductor that chains **BUILD → GROW** for a single request needing both software *and* the
-> business work on top of it (SEO, marketing, sales, research, content). A parallel-agent swarm ships the product,
-> hands off a factual brief, then grows it against what was actually built.
+> agentic-suite is a **Claude Code plugin** — an SDLC + GROW framework that bundles three orchestration **skills**
+> (conductor + agentic-app-builder + agentic-worker). The conductor chains **BUILD → GROW** for a single request
+> needing both software *and* the business work on top of it (SEO, marketing, sales, research, content): a
+> parallel-agent swarm ships the product, hands off a factual brief, then grows it against what was actually built.
 
 <img width="1522" height="802" alt="image" src="https://github.com/user-attachments/assets/18724d2e-3a1d-48d4-9cb9-d8c33ae868ed" />
 
@@ -35,8 +36,8 @@ request ─▶ pre-flight ─▶ classify ─▶ split ─▶ [BUILD] ─▶ gat
 /plugin install agentic-suite@agentic-suite
 ```
 
-One install registers all three bundled skills (conductor + agentic-app-builder + agentic-worker) and the shared
-persona registry. **Requirements:** Claude Code + **Node.js 18+** (zero-dependency `.mjs` helpers). No API key.
+Installing the **plugin** registers its three bundled **skills** (conductor + agentic-app-builder + agentic-worker)
+and the shared persona registry. **Requirements:** Claude Code + **Node.js 18+** (zero-dependency `.mjs` helpers). No API key.
 
 ## Quick start
 
