@@ -17,6 +17,7 @@ import { computeTokens } from "./token-report.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const STATE = path.resolve(here, "..", "state", "agents.json");
+const EVENTS = path.resolve(here, "..", "state", "events.jsonl");
 const HTML = path.join(here, "index.html");
 // Project root = two levels up from plan/dashboard. Used to locate the Claude
 // Code transcript and measure real token spend since the run's startedAt.
@@ -99,6 +100,40 @@ function readState() {
   return raw;
 }
 
+// ── auto-derive the Replay event log from agents.json status transitions ──
+// The orchestrator's manual events.jsonl logging is best-effort and often skipped,
+// leaving the Replay tab empty. The server fills it deterministically by diffing
+// agent statuses each tick — so Replay populates without relying on the orchestrator.
+let _seenStatus = {};
+let _seq = 0;
+let _seeded = false;
+function seedSeq() {
+  if (_seeded) return; _seeded = true;
+  try { _seq = fs.readFileSync(EVENTS, "utf8").split("\n").filter((l) => l.trim().startsWith("{")).length; } catch { _seq = 0; }
+}
+const EV_TYPE = { working: "agent.start", done: "agent.done", blocked: "agent.blocked" };
+function deriveEvents(stateStr) {
+  seedSeq();
+  let s; try { s = JSON.parse(stateStr); } catch { return; }
+  const t = s.updated || new Date().toISOString();
+  const lines = [];
+  for (const a of (Array.isArray(s.agents) ? s.agents : [])) {
+    const id = a.id || a.label; if (!id) continue;
+    const st = a.status || "ready";
+    if (_seenStatus[id] === st) continue;
+    _seenStatus[id] = st;
+    const type = EV_TYPE[st]; if (!type) continue;   // ignore ready/spawning
+    lines.push(JSON.stringify({ seq: ++_seq, t, type, node: id, role: a.role || null, status: st }));
+  }
+  if (s.phase && _seenStatus.__phase !== s.phase) {
+    _seenStatus.__phase = s.phase;
+    lines.push(JSON.stringify({ seq: ++_seq, t, type: "phase", value: s.phase }));
+  }
+  if (lines.length) {
+    try { fs.mkdirSync(path.dirname(EVENTS), { recursive: true }); fs.appendFileSync(EVENTS, lines.join("\n") + "\n"); } catch {}
+  }
+}
+
 const clients = new Set();
 function send(res, payload) {
   try { res.write(`data: ${payload.replace(/\n/g, " ")}\n\n`); } catch { clients.delete(res); }
@@ -112,6 +147,7 @@ setInterval(() => {
   if (m !== lastMtime) {
     lastMtime = m;
     const payload = readState();
+    deriveEvents(payload);   // auto-populate the Replay log from status transitions
     for (const res of clients) send(res, payload);
   }
 }, 500);
