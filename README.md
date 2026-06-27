@@ -43,7 +43,7 @@ persona registry. **Requirements:** Claude Code + **Node.js 18+** (zero-dependen
 Just prompt — nothing to set up first. On a fresh run the conductor auto-runs a pre-flight check, then drives the rest.
 
 ```text
-Build a photo-manager web app, then write its SEO strategy,
+/agentic-suite Build a photo-manager web app, then write its SEO strategy,
 a content-marketing plan, and a sales proposal.
 ```
 
