@@ -161,6 +161,9 @@ Create `plan/docs/` and `plan/state/`. Create `plan/state/cache/` and initialize
 **Cross-session memory (see `references/memory.md`):** check for `.agentic-builder/memory.json` at the
 project root. If present, load it and build the keyword-filtered `PRIOR_RUNS_CONTEXT` slice to inject
 into the planner + architect agents (warm start from prior runs). If absent, skip silently.
+**Lessons ledger (warm-start):** also run `node scripts/lessons-merge.mjs warm --stack <stack> --domain <domain>`
+and inject its output into the planner + architect prompts — distilled lessons from prior runs (what users
+amended, what failed). Skip silently if empty.
 **Do NOT scaffold the standalone program** — that's Engine B.
 **SURGICAL mode:** create `plan/state/` only — no `plan/docs/`.
 
@@ -566,6 +569,15 @@ On completion: summarize what was built + how to run it. On BLOCKED: surface `BL
 to debug / skip / abort. A blocked task blocks only its DAG descendants — independent milestones
 continue to completion.
 
+**Phase 9 — capture lessons (cross-run learning).** Before finishing, distill 3–8 **atomic lessons** from
+THIS run's signals — gate failures, fix-loop iteration counts, `BLOCKED.md`, and especially **user
+overrides** (plan "Change scope", wireframe "Suggest changes" + notes, interview answers that overrode a
+default, milestone undo/redo). Each lesson: `{scope:"global"|"stack"|"domain", trigger, lesson, confidence,
+stack?, domain?}` — a `trigger` is the recurring situation, the `lesson` is the actionable takeaway. Write
+them to a temp JSON array and run `node scripts/lessons-merge.mjs merge <file>`; it dedupes (reinforcing
+seen-before lessons), caps the store, and feeds the next run's warm-start. Best-effort — never block
+finishing on it. Keep lessons general + reusable, not project-trivia.
+
 ## Live swarm dashboard
 
 A real-time view of the agent swarm — which agents are spawned and what each is working on, updating
@@ -810,6 +822,7 @@ per task, each gate, each commit. On restart, read it, print progress, resume.
 - `references/file-ownership.md` — **load at Stage 2 (planning) + Stage 3 (scheduler dispatch)**. Runtime write-conflict guard: `writes:[globs]` per task, dispatch-time overlap gate, `locks.json`.
 - `references/budget.md` — **load at Stage 0 Step 6 + every scheduler loop**. Optional token/USD soft caps: warn at 80%, pause + approval at 100%; consumes `token-report.mjs`.
 - `references/memory.md` — **load at Stage 0 Step 3 + planner/architect dispatch**. Cross-session `.agentic-builder/memory.json`: prior decisions/failures injected as warm-start context.
+- `scripts/lessons-merge.mjs` — **warm at planning, merge at Phase 9**. Cross-run lessons ledger (`.agentic-builder/lessons.json`): distil run signals/user overrides → dedupe → warm-start the next run.
 - `references/events-log.md` — **load at Stage 3**. Append-only `plan/state/events.jsonl` audit/replay log; powers the dashboard Replay tab.
 - `references/unattended-mode.md` — **load at Stage 0 when the run is unattended/CI**. No-human-in-the-loop: auto-resolve gates, write `plan/state/RESULT.json`. In-session only (no Engine B).
 - `references/harness-adapters.md` — **load at Stage 0 on a non-Claude-Code harness**. Maps the skill's primitives (subagents, ask, token measure) across harnesses with explicit degradations.

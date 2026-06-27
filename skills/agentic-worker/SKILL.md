@@ -52,6 +52,8 @@ and `plan/state/events.jsonl` → empty (append-only replay/audit log — `refer
 **Cross-session memory (see `references/cross-session-memory.md`):** check for `.agentic-builder/memory.json`
 at the project root; if present, load it and build the keyword-filtered `PRIOR_RUNS_CONTEXT` slice for the
 coordinator + analysis agents (warm start, shared with agentic-app-builder). If absent, skip silently.
+**Lessons ledger (warm-start):** also run `node scripts/lessons-merge.mjs warm --domain <primary_domain>` and
+inject its output into the coordinator prompt — distilled lessons from prior runs. Skip silently if empty.
 
 ### Step 2 — Capability check
 
@@ -238,6 +240,12 @@ node plan/showcase/build-showcase.mjs outputs "<product/run title>"
 
 Add the path to the final `agents.json` log and the CLI summary.
 
+**Capture lessons (cross-run learning).** Before finishing, distill 3–8 atomic lessons from this run's
+signals — review-gate gaps, fix-loop counts, BLOCKED.md, domain-classification corrections, and user
+amendments — as `{scope:"global"|"domain", trigger, lesson, confidence, domain?}`, write to a temp JSON
+array, and run `node scripts/lessons-merge.mjs merge <file>` (dedupes + warms the next run). Best-effort;
+keep lessons general + reusable.
+
 Mark `coordinate` card `done`.
 
 Print to CLI: "Done. Output: `outputs/{file}` · Showcase: `outputs/showcase.html`"
@@ -284,6 +292,7 @@ Update `progress.pct` and `progress.step` at every sub-phase within `plan` and `
 - `references/file-ownership.md` — runtime write-conflict guard (Stage 4 dispatch)
 - `references/budget.md` — token/USD soft caps (Stage 0 + scheduler loop top)
 - `references/cross-session-memory.md` — shared `.agentic-builder/memory.json` warm-start (Stage 0)
+- `scripts/lessons-merge.mjs` — cross-run lessons ledger (`.agentic-builder/lessons.json`): warm at planning, merge at Stage 5; shared with agentic-app-builder
 - `references/events-log.md` — append-only events.jsonl → dashboard Replay tab (Stage 4)
 - `references/unattended-mode.md` — no-human-in-the-loop / CI runs (Stage 0)
 - `references/harness-adapters.md` — multi-harness primitive mapping (Stage 0)
