@@ -9,3 +9,11 @@ HANDOFF.json
 *.log
 .DS_Store
 Thumbs.db
+
+# Local Claude Code settings (machine-absolute hook paths from install-hooks.mjs)
+.claude/settings.json
+.claude/settings.local.json
+
+# Run artifacts from the opt-in hooks / scanners
+scan-report.json
+suite-state-gate.json
