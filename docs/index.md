@@ -18,6 +18,8 @@
 > business work on top of it (SEO, marketing, sales, research, content). A parallel-agent swarm ships the product,
 > hands off a factual brief, then grows it against what was actually built.
 
+<img width="1522" height="802" alt="image" src="https://github.com/user-attachments/assets/18724d2e-3a1d-48d4-9cb9-d8c33ae868ed" />
+
 ![agentic-suite live dashboard](../assets/dashboard.png)
 
 ```
