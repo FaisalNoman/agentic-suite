@@ -121,6 +121,19 @@ async function run() {
   if (gitv) add("PASS", "git", gitv.replace("git version ", "v"));
   else add("WARN", "git", "not found — suite works, but per-milestone commits/undo are disabled");
 
+  // 11 — enforcement hooks (OPTIONAL — informative, never WARN/FAIL since the suite runs fine without them)
+  const settingsFiles = [
+    path.join(process.cwd(), ".claude", "settings.json"),
+    path.join(process.env.HOME || process.env.USERPROFILE || "", ".claude", "settings.json"),
+  ];
+  let hooksOn = false;
+  for (const sp of settingsFiles) {
+    try { if (JSON.stringify(JSON.parse(fs.readFileSync(sp, "utf8")).hooks || {}).includes("suite-hook.mjs")) hooksOn = true; } catch {}
+  }
+  if (hooksOn) add("PASS", "enforcement hooks", "installed (config-protection, dangerous-bash, circuit-breaker, …)");
+  else add("PASS", "enforcement hooks", "optional, not installed — for guarded runs: `node " +
+    path.join(base, "scripts", "install-hooks.mjs").split(path.sep).join("/") + "` then restart Claude Code");
+
   // ── report ──
   const fails = results.filter((r) => r.status === "FAIL");
   const warns = results.filter((r) => r.status === "WARN");

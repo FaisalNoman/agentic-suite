@@ -58,6 +58,11 @@ environment is sound; on a blocking failure it stops and tells you exactly what 
 anytime: `/suite-doctor` (or `node ~/.claude/skills/agentic-suite/scripts/suite-doctor.mjs` from your
 project folder).
 
+**Optional guardrails (hooks).** For long/unattended runs you can install an opt-in enforcement pack
+(config-protection, dangerous-bash, circuit-breaker, cost-alert, …). The pre-flight tells you if it's not
+installed and prints the command. To enable: `node ~/.claude/skills/agentic-suite/scripts/install-hooks.mjs`
+**then restart Claude Code** (hooks load at session start). The suite runs fine without it.
+
 ## Status
 
 - **Phase 1 (this release):** all three skills bundled in one install; conductor + `HANDOFF.json` bridge; sequential dashboards (:4317 → :4318).
