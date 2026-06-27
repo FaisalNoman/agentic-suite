@@ -71,8 +71,14 @@ function configProtection(input, stateDir) {
   if (!fp) allow();
   if (marker(stateDir, ".allow-config-edit")) allow();
   if (CONFIG_RE.test(path.basename(fp))) {
-    block(`[agentic-suite] config-protection: editing "${path.basename(fp)}" during a build can mask ` +
-      `failures by weakening the tooling that gates green. Fix the code under test instead. ` +
+    // Allow CREATING the config (scaffold standing up the toolchain). Only block EDITS to a config that
+    // ALREADY EXISTS — that's the green-gaming window (weakening strict/excluding failing tests). Edit
+    // always targets an existing file; a Write to a new path is creation and passes.
+    const abs = path.isAbsolute(fp) ? fp : path.join(input.cwd || process.cwd(), fp);
+    let exists = false; try { exists = fs.existsSync(abs); } catch {}
+    if (!exists) allow(); // creating the toolchain config — fine
+    block(`[agentic-suite] config-protection: editing the EXISTING "${path.basename(fp)}" during a build ` +
+      `can mask failures by weakening the tooling that gates green. Fix the code under test instead. ` +
       `If this config change is genuinely required, create "${path.join(stateDir, ".allow-config-edit")}" and retry.`);
   }
   allow();
