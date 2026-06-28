@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agentic-suite — unified dashboard</title>
+<style>
+:root{--bg:#0b0e14;--bg2:#0e131b;--panel:#11161f;--line:#1f2733;--line2:#2a3441;--ink:#e6edf3;--ink2:#aeb9c7;--dim:#6b7787;
+ --accent:#7aa2ff;--amber:#f0c674;--green:#22c55e;--red:#f85149;--mono:ui-monospace,Consolas,monospace;--sans:-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;padding:26px 30px 60px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.head{display:flex;align-items:center;gap:11px;margin-bottom:6px}.dot{width:11px;height:11px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#9b8cff);box-shadow:0 0 12px var(--accent)}
+.head b{font-size:17px}.head b .a{color:var(--accent)}.sub{font:600 11px var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin:0 0 20px 22px}
+.rail{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.ph{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px 18px;position:relative}
+.ph.active{border-color:var(--accent);box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 30%,transparent),0 0 40px -16px var(--accent)}
+.ph.off{opacity:.45}
+.ph h3{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--ink2);display:flex;justify-content:space-between;align-items:center}
+.ph .st{font:600 10px var(--mono);color:var(--dim)}
+.ph .big{font-size:30px;font-weight:700;font-family:var(--mono);margin:10px 0 2px}
+.ph .row{display:flex;gap:14px;margin-top:8px;font:600 12px var(--mono)}
+.ph .row i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.ph .lnk{margin-top:12px;font:600 12px var(--mono)}
+.arrow{position:absolute;right:-11px;top:50%;transform:translateY(-50%);color:var(--accent);font-size:18px;z-index:2}
+.kpis{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px 16px;min-width:150px}
+.kpi .l{font:600 10px var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--dim)}.kpi .v{font:700 22px var(--mono);margin-top:3px}
+.sec{font:600 11px var(--mono);letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin:8px 0 10px}
+.rp{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;max-height:300px;overflow:auto}
+.rp .e{display:grid;grid-template-columns:54px 70px 1fr;gap:10px;padding:4px 0;border-bottom:1px solid var(--line);font:600 11.5px var(--mono);color:var(--ink2)}
+.rp .e time{color:var(--dim)}.rp .e .pp{font-weight:700}.pp.BUILD{color:var(--accent)}.pp.GROW{color:var(--green)}
+.rp .none{color:var(--dim);padding:8px}
+.refresh{float:right;font:600 11px var(--mono);background:var(--panel);border:1px solid var(--line2);color:var(--ink2);border-radius:7px;padding:5px 10px;cursor:pointer}
+</style></head><body>
+<div class="head"><span class="dot"></span><b>agentic<span class="a">·</span>suite</b></div>
+<div class="sub" id="phase">unified dashboard — BUILD · GROW · ACT</div>
+
+<div class="rail" id="rail"></div>
+<div class="kpis" id="kpis"></div>
+
+<div class="sec">Unified timeline <button class="refresh" id="rf">↻ refresh</button></div>
+<div class="rp" id="rp"><div class="none">loading…</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const ICON={working:"var(--amber)",done:"var(--green)",blocked:"var(--red)"};
+function render(s){
+  $("phase").textContent="unified dashboard — phase: "+(s.phase||"—");
+  const order=["BUILD","GROW","ACT"]; const rail=$("rail"); rail.innerHTML="";
+  order.forEach((k,idx)=>{
+    const p=(s.phases||[]).find(x=>x.key===k)||{key:k,present:false};
+    const active=(s.phase||"").toLowerCase()===k.toLowerCase()||((s.phase==="build"&&k==="BUILD")||(s.phase==="grow"&&k==="GROW")||(s.phase==="act"&&k==="ACT"));
+    const c=p.counts||{}; const div=document.createElement("div");
+    div.className="ph"+(p.present?(active?" active":""):" off");
+    const rows=p.present?`<div class="big">${c.done||0}/${c.total||0}</div><div class="st">tasks done</div>
+      <div class="row"><span><i style="background:var(--amber)"></i>${c.working||0}</span><span><i style="background:var(--green)"></i>${c.done||0}</span><span><i style="background:var(--red)"></i>${c.blocked||0}</span></div>`
+      :`<div class="big" style="color:var(--dim)">—</div><div class="st">not started</div>`;
+    const link=p.url?`<div class="lnk"><a href="${p.url}" target="_blank">open board ↗</a></div>`
+      :(k==="ACT"&&p.present?`<div class="lnk st">${(p.pending_approval||[]).length} pending approval</div>`:"");
+    div.innerHTML=`<h3>${k}<span class="st">${p.stage||""}</span></h3>${rows}${link}`;
+    if(idx<2){const a=document.createElement("span");a.className="arrow";a.textContent="→";div.appendChild(a);}
+    rail.appendChild(div);
+  });
+  const t=s.tokens; $("kpis").innerHTML=
+    `<div class="kpi"><div class="l">phase</div><div class="v" style="font-size:16px">${s.phase||"—"}</div></div>`+
+    `<div class="kpi"><div class="l">tokens ${t&&t.measured?"(measured)":""}</div><div class="v">${t?fmt(t.total):"—"}</div></div>`+
+    `<div class="kpi"><div class="l">in · out</div><div class="v" style="font-size:14px">${t?fmt(t.in)+" · "+fmt(t.out):"—"}</div></div>`;
+}
+function fmt(n){n=Number(n)||0;return n>=1e6?(n/1e6).toFixed(1)+"M":n>=1e3?(n/1e3).toFixed(0)+"k":String(n);}
+function loadTimeline(){fetch("/timeline").then(r=>r.text()).then(txt=>{
+  const evs=txt.split("\n").filter(l=>l.trim()[0]==="{").map(l=>{try{return JSON.parse(l)}catch{return null}}).filter(Boolean);
+  const rp=$("rp"); if(!evs.length){rp.innerHTML='<div class="none">no events yet — they stream as BUILD/GROW run</div>';return;}
+  const t0=evs[0].t?new Date(evs[0].t).getTime():0;
+  rp.innerHTML=evs.map(e=>{const dt=e.t&&t0?Math.max(0,Math.round((new Date(e.t).getTime()-t0)/1000)):"";
+    return `<div class="e"><time>+${dt}s</time><span class="pp ${e.phase}">${e.phase}</span><span>${esc(e.type||"")} ${esc(e.node||e.value||"")}</span></div>`}).join("");
+}).catch(()=>{$("rp").innerHTML='<div class="none">timeline unavailable</div>'});}
+function esc(s){const d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML;}
+$("rf").onclick=loadTimeline;
+const es=new EventSource("/events");es.onmessage=e=>{try{render(JSON.parse(e.data))}catch(_){}};
+loadTimeline(); setInterval(loadTimeline,5000);
+</script></body></html>

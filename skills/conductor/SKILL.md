@@ -257,11 +257,19 @@ On a crash or a fresh session, run `node <conductor-base>/scripts/suite-resume.m
 command) for a deterministic briefing — current phase, outstanding milestones, dashboards, next action —
 then continue per Operating Rule 6. Resume; do not rebuild a completed phase.
 
-## Dashboards (v1 — sequential takeover)
+## Dashboards
 
-BUILD uses agentic-app-builder's board (:4317); GROW uses agentic-worker's (:4318). The conductor announces
-the transition at Stage 4. (Roadmap: a unified BUILD→GROW board once both skills share a core — see the
-suite's SUITE-PLAN.)
+Per-phase boards (deep view): BUILD = agentic-app-builder's (:4317), GROW = agentic-worker's (:4318);
+the conductor announces the transition at Stage 4.
+
+**Unified suite board (U1, recommended for multi-phase runs):** at Stage 0, copy
+`<conductor-base>/template/suite-dashboard/` → `./suite-dashboard/` and start it:
+`node suite-dashboard/server.mjs --no-open` then open it with the same foreground helper pattern (read
+`suite-dashboard.json` → open the `url`, base port 4316). It aggregates BUILD + GROW + ACT into one page —
+a phase rail (status + task counts + a link to each per-phase board), a combined token KPI, and a merged
+phase-tagged Replay timeline — reading the sibling `build/` · `grow/` · `act/` state read-only. The per-phase
+boards keep running for detail; the unified board is the single-pane overview. (Roadmap U2: one fully merged
+board once both engines share a core.)
 
 ## Reference files
 
@@ -276,4 +284,5 @@ suite's SUITE-PLAN.)
 - `references/act-phase2.md` + `references/act-executors.json` + `scripts/act-ledger.mjs` — **ACT Phase 2** (opt-in, off by default): outward execution via the user's MCP connectors behind 5 guardrails (per-action approval · dry-run · idempotency ledger · draft/reversible-first · never-auto list).
 - `scripts/lessons-evolve.mjs` + `commands/suite-evolve.md` — **`/suite-evolve`**: promote mature lessons → durable project-local `.agentic-builder/learned-rules.md` (human-gated, append-only). Loaded at planning warm-start.
 - `references/research-first.md` — spec for fix #5 (optional RESEARCH-first pre-stage: research → BUILD → GROW → ACT). Not built.
+- `template/suite-dashboard/` — unified suite board (U1): aggregates BUILD+GROW+ACT into one page (phase rail · combined tokens · merged Replay), read-only over the sibling phase state.
 - `scripts/suite-doctor.mjs` + `commands/suite-doctor.md` — pre-flight environment check (node, skills, registry, ports, state, write access); PASS/WARN/FAIL, exit 0/1/2. Advisory.
