@@ -49,16 +49,21 @@ Announce it: "Pre-flight check…". Then act on the exit code / table:
 On a resume (`suite-state.json` exists) skip Step 0 — the environment already ran once. The user can also
 run `/suite-doctor` manually anytime, but they never have to: this step makes it automatic.
 
-**Step 1 — Classify** the request into `{ needs_build, needs_grow, build_brief, grow_brief }`.
+**Step 1 — Classify** the request into `{ needs_build, needs_grow, needs_act, build_brief, grow_brief }`.
+`needs_act` is true when the user asks to **implement / execute / ship / publish / make ship-ready** the
+deliverables or findings (e.g. "…then implement it", "build the landing page from the spec", "make them
+ship-ready").
 
 - `needs_build && !needs_grow` → invoke the `agentic-app-builder` skill with the whole request. Stop.
-- `needs_grow && !needs_build` → invoke the `agentic-worker` skill with the whole request. Stop.
-- `needs_build && needs_grow` → this is a suite run. Continue to Stage 1.
+- `needs_grow && !needs_build` → invoke the `agentic-worker` skill with the whole request. **Then, if
+  `needs_act`, run STAGE 4.5 (ACT) over `grow/outputs/`** (fix #4 — research/docs → implement, no BUILD
+  phase; ACT's Executor A is itself a build loop for software deliverables). Else stop.
+- `needs_build && needs_grow` → this is a suite run. Continue to Stage 1 (ACT, if `needs_act`, runs at 4.5).
 - Neither clearly → ask the user once which they want (dashboard-first if a board is up, else `AskUserQuestion`).
 
 Write `suite-state.json`:
 ```json
-{ "phase": "classify|build|handoff|grow|act|done", "needs_build": true, "needs_grow": true,
+{ "phase": "classify|build|handoff|grow|act|done", "needs_build": true, "needs_grow": true, "needs_act": false,
   "build_brief": "…", "grow_brief": "…", "build_status": null, "handoff": null, "updated_at": "<iso>" }
 ```
 
