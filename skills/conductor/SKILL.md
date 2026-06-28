@@ -274,4 +274,6 @@ suite's SUITE-PLAN.)
 - `scripts/route-preview.mjs` — preview which specialist persona the router would pick for a requirement (mirrors the live specialist-router scoring); read-only demonstrator.
 - `references/act-contract.md` + `scripts/act-scan.mjs` + `scripts/act-build-artifacts.mjs` — optional **ACT** stage (Stage 4.5, Phase 1): scan/gate GROW outputs, write ship-ready artifacts (file-only), build-deliverables approval-gated. Schema = `ACT-PLAN.json`.
 - `references/act-phase2.md` + `references/act-executors.json` + `scripts/act-ledger.mjs` — **ACT Phase 2** (opt-in, off by default): outward execution via the user's MCP connectors behind 5 guardrails (per-action approval · dry-run · idempotency ledger · draft/reversible-first · never-auto list).
+- `scripts/lessons-evolve.mjs` + `commands/suite-evolve.md` — **`/suite-evolve`**: promote mature lessons → durable project-local `.agentic-builder/learned-rules.md` (human-gated, append-only). Loaded at planning warm-start.
+- `references/research-first.md` — spec for fix #5 (optional RESEARCH-first pre-stage: research → BUILD → GROW → ACT). Not built.
 - `scripts/suite-doctor.mjs` + `commands/suite-doctor.md` — pre-flight environment check (node, skills, registry, ports, state, write access); PASS/WARN/FAIL, exit 0/1/2. Advisory.

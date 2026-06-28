@@ -52,7 +52,7 @@ and `plan/state/events.jsonl` → empty (append-only replay/audit log — `refer
 **Cross-session memory (see `references/cross-session-memory.md`):** check for `.agentic-builder/memory.json`
 at the project root; if present, load it and build the keyword-filtered `PRIOR_RUNS_CONTEXT` slice for the
 coordinator + analysis agents (warm start, shared with agentic-app-builder). If absent, skip silently.
-**Lessons ledger (warm-start):** also run `node scripts/lessons-merge.mjs warm --domain <primary_domain>` and
+**Learned rules (warm-start):** if `.agentic-builder/learned-rules.md` exists (promoted via `/suite-evolve`), load it as durable rules. **Lessons ledger (warm-start):** also run `node scripts/lessons-merge.mjs warm --domain <primary_domain>` and
 inject its output into the coordinator prompt — distilled lessons from prior runs. Skip silently if empty.
 
 ### Step 2 — Capability check

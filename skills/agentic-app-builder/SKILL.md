@@ -161,7 +161,7 @@ Create `plan/docs/` and `plan/state/`. Create `plan/state/cache/` and initialize
 **Cross-session memory (see `references/memory.md`):** check for `.agentic-builder/memory.json` at the
 project root. If present, load it and build the keyword-filtered `PRIOR_RUNS_CONTEXT` slice to inject
 into the planner + architect agents (warm start from prior runs). If absent, skip silently.
-**Lessons ledger (warm-start):** also run `node scripts/lessons-merge.mjs warm --stack <stack> --domain <domain>`
+**Learned rules (warm-start):** if `.agentic-builder/learned-rules.md` exists (promoted via `/suite-evolve`), load it and inject as durable planning rules. **Lessons ledger (warm-start):** also run `node scripts/lessons-merge.mjs warm --stack <stack> --domain <domain>`
 and inject its output into the planner + architect prompts — distilled lessons from prior runs (what users
 amended, what failed). Skip silently if empty.
 **Do NOT scaffold the standalone program** — that's Engine B.
