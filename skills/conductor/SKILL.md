@@ -204,6 +204,15 @@ Phase 1 is **file-only** — it writes under `act/`, never posts/sends/deploys. 
    `act-ledger.mjs record` the result. **Five guardrails are mandatory:** per-action approval · dry-run first ·
    idempotent · draft/reversible-first (`mode:"draft"` channels only stage drafts — never auto-publish) ·
    never touch `policy.never_auto` (paid-ads/bulk-email/dm). Write each result into the task's `execution` block.
+   **Deploy / go-live (D1, the highest-value action):** for each web/software target (the built app's dist
+   and the ACT landing page), run `node <conductor-base>/scripts/act-deploy.mjs plan <targetDir>`. If it
+   exits 3 (`needsServer`) → it's a server app: skip it (Deploy D2, not built) but still deploy the static
+   targets, and tell the user the app needs a server host. Else: resolve the connector (default **GitHub
+   Pages**; auto-use Netlify/Vercel if their CLI/MCP is present; if none, run `act-deploy.mjs manual` and
+   surface the steps), show the dry-run + **per-action approval**, run the build + connector command, then
+   **verify** with `act-deploy.mjs verify <url>` (must be 200), and record the live URL. Finally run
+   `node <conductor-base>/scripts/act-deploy.mjs launch` to write **`LAUNCH.md`** (live URLs + remaining
+   launch tasks). Idempotent (keyed on target+build-hash — never re-deploys the same build).
 6. Set `suite-state.phase = "act"`; add an ACT section to the showcase linking every `outputs[].path`
    (and any Phase-2 `execution.result` links).
 
@@ -284,5 +293,6 @@ board once both engines share a core.)
 - `references/act-phase2.md` + `references/act-executors.json` + `scripts/act-ledger.mjs` — **ACT Phase 2** (opt-in, off by default): outward execution via the user's MCP connectors behind 5 guardrails (per-action approval · dry-run · idempotency ledger · draft/reversible-first · never-auto list).
 - `scripts/lessons-evolve.mjs` + `commands/suite-evolve.md` — **`/suite-evolve`**: promote mature lessons → durable project-local `.agentic-builder/learned-rules.md` (human-gated, append-only). Loaded at planning warm-start.
 - `references/research-first.md` — spec for fix #5 (optional RESEARCH-first pre-stage: research → BUILD → GROW → ACT). Not built.
+- `references/deploy-stage.md` + `scripts/act-deploy.mjs` — **Deploy stage D1 (go-live)**: deploy the built app + landing page to a live URL (GitHub Pages default), gated · idempotent · verify-200 · `LAUNCH.md`. Static-only; server apps → D2 (not built).
 - `template/suite-dashboard/` — unified suite board (U1): aggregates BUILD+GROW+ACT into one page (phase rail · combined tokens · merged Replay), read-only over the sibling phase state.
 - `scripts/suite-doctor.mjs` + `commands/suite-doctor.md` — pre-flight environment check (node, skills, registry, ports, state, write access); PASS/WARN/FAIL, exit 0/1/2. Advisory.

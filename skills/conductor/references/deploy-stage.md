@@ -1,4 +1,9 @@
-# Deploy stage — go-live (spec, not yet built)
+# Deploy stage — go-live
+
+> **D1 BUILT.** `scripts/act-deploy.mjs` (`plan | verify | manual | launch`) + the `web` connector in
+> `act-executors.json` + the ACT deploy sub-flow in SKILL Stage 4.5 are implemented. Defaults: GitHub Pages
+> (zero extra auth), per-action approval, custom domain out of scope, server apps → D2 stop. D2 (server/
+> full-stack hosting) remains spec-only below.
 
 The single feature that turns "files on disk" into **a live URL**. Takes what BUILD + ACT produced
 (the app, the landing page) and **deploys it**, gated + reversible + idempotent, then verifies it's up and
