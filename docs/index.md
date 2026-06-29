@@ -283,6 +283,13 @@ session, state is read and the run resumes where it stopped.
 
 All scripts are zero-dependency Node (`.mjs`) — cross-platform, no install step.
 
+> [!NOTE]
+> **How the slash commands register.** `/suite-doctor`, `/suite-resume`, `/suite-evolve` appear only when the
+> suite is **installed as a plugin** (`/plugin install` → namespaced, e.g. `/agentic-suite:suite-doctor`). If you
+> copied the skills into `~/.claude/skills/` manually, the `commands/` folder is **not** auto-registered — install
+> as a plugin, or copy the command files into `~/.claude/commands/`. **Restart Claude Code** either way (commands
+> load at session start). The scripts always work directly: `node ~/.claude/skills/agentic-suite/scripts/<name>.mjs`.
+
 ---
 
 ## Architecture

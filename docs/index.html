@@ -479,8 +479,10 @@ node ~/.claude/skills/agentic-suite/scripts/suite-doctor.mjs</code></pre>
       <div class="kref"><code>scripts/uninstall-hooks.mjs</code><span>Remove the hooks; preserves your other settings.</span></div>
       <div class="kref"><code>scripts/scan-surface.mjs</code><span>Advisory injection scan of personas + skill/settings/hook files.</span></div>
       <div class="kref"><code>scripts/route-preview.mjs</code><span>Preview which persona the router picks for a requirement.</span></div>
+      <div class="kref"><code>/suite-evolve</code><span>Promote mature lessons → durable project rules (human-gated).</span></div>
       <div class="kref" style="border:none"><code>scripts/suite-resume.mjs</code><span>The resume-briefing helper behind <code>/suite-resume</code>.</span></div>
       <p style="margin-top:14px">All scripts are zero-dependency Node (<code>.mjs</code>) — cross-platform, no install step.</p>
+      <div class="note"><b>How the slash commands register.</b> <code>/suite-doctor</code>, <code>/suite-resume</code>, <code>/suite-evolve</code> appear only when the suite is <b>installed as a plugin</b> (<code>/plugin install</code> → namespaced, e.g. <code>/agentic-suite:suite-doctor</code>). If you copied the skills into <code>~/.claude/skills/</code> manually, the <code>commands/</code> folder is <b>not</b> auto-registered — install as a plugin, or copy the command files into <code>~/.claude/commands/</code>. <b>Restart Claude Code</b> either way (commands load at session start). The scripts always work directly: <code>node ~/.claude/skills/agentic-suite/scripts/&lt;name&gt;.mjs</code>.</div>
     </section>
 
     <section id="architecture">
