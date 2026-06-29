@@ -13,7 +13,14 @@
       "channel": "web", "capability": "deploy-static",
       "mcp_hint": "netlify deploy OR vercel deploy OR github pages publish",
       "reversible": true, "mode": "auto",
-      "idempotency": "site+commit", "notes": "Deploy the Executor-A built site. Reversible (redeploy/rollback). Per-action approval still required."
+      "idempotency": "target+build-hash", "default_host": "github-pages",
+      "hosts": {
+        "github-pages": "npx gh-pages -d <dist>",
+        "netlify": "netlify deploy --prod --dir <dist>",
+        "vercel": "vercel --prod"
+      },
+      "driver": "scripts/act-deploy.mjs",
+      "notes": "Deploy stage D1 (static only). Default GitHub Pages (existing git auth); auto-use Netlify/Vercel CLI/MCP if present; degrade to act/deploy/*.deploy.md if none. Server apps → D2 (not built). Per-action approval + verify-200."
     },
     {
       "channel": "issues", "capability": "create-issues",
