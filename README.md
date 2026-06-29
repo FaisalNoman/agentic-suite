@@ -284,12 +284,23 @@ session, state is read and the run resumes where it stopped.
 |---|---|
 | `/suite-doctor` | Pre-flight environment check (auto-runs at Stage 0; also manual). |
 | `/suite-resume` | Briefing of an interrupted run + where to continue. |
+| `/suite-evolve` | Promote mature lessons → durable project rules (human-gated). |
 | `scripts/check-build-gate.mjs` | Deterministic BUILD-completion gate (Stage 2.5). |
 | `scripts/install-hooks.mjs` / `uninstall-hooks.mjs` | Install / remove the opt-in enforcement pack. |
 | `scripts/scan-surface.mjs` | Advisory injection scan of personas + skill/settings/hook files. |
 | `scripts/route-preview.mjs` | Preview which persona the router picks for a requirement. |
+| `scripts/lessons-evolve.mjs` | Backs `/suite-evolve` (propose / apply / list). |
 
 All scripts are zero-dependency Node (`.mjs`) — cross-platform, no install step.
+
+> [!NOTE]
+> **How the slash commands register.** `/suite-doctor`, `/suite-resume`, and `/suite-evolve` only appear when
+> the suite is **installed as a plugin** (`/plugin install` → they register, namespaced, e.g.
+> `/agentic-suite:suite-doctor`). If you copied the skills manually into `~/.claude/skills/`, the suite's
+> `commands/` folder is **not** auto-loaded as slash commands — either install it as a plugin, **or** copy the
+> command files into your personal `~/.claude/commands/`. **Either way, restart Claude Code** (commands load at
+> session start). The underlying scripts always work directly without any of this:
+> `node ~/.claude/skills/agentic-suite/scripts/<name>.mjs`.
 
 ---
 
