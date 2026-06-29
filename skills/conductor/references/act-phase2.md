@@ -67,6 +67,9 @@ act/
 ```
 
 ## Tooling
+- `scripts/act-execute.mjs` — `plan | record | status`: scans `act/` artifacts → enumerates reversible actions
+  (per tweet/email/blog/issue) with dry-run previews + idempotency keys → `act/executions.json`. Excludes
+  `web` (Deploy stage owns it), `never_auto`, and `human` tasks. **Built + tested.**
 - `scripts/act-ledger.mjs` — `key | check | record | list` (idempotency + audit log). **Built + tested.**
 - `references/act-executors.json` — channel → capability/mode registry + policy. **Built.**
 - MCP call itself — **orchestrator-driven** via ToolSearch (no vendor code shipped). Degrades to Phase-1 when absent.

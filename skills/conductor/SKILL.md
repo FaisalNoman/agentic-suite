@@ -196,14 +196,17 @@ Phase 1 is **file-only** — it writes under `act/`, never posts/sends/deploys. 
    deliverable's `build_ref.dir` (FEATURE if a repo exists there, else GREENFIELD), then update its
    ACT-PLAN entry (`approval.status`, `status`, `build_ref.result`). Never auto-build.
 5. **Phase 2 — outward execution (OPT-IN, off by default; see `references/act-phase2.md`).** Only if the user
-   explicitly opts in. For each `automatable` task with a target `channel`: look up
-   `references/act-executors.json[channel]` → discover a matching MCP tool via ToolSearch (`mcp_hint`); if
-   none, or `mode:"manual"`, leave the Phase-1 artifact and mark the task `skipped`. Otherwise: compute the
-   idempotency key (`act-ledger.mjs key …`), `act-ledger.mjs check` it (skip if already `executed`), show a
-   **dry-run preview on the dashboard and get PER-ACTION approval**, then call the MCP tool and
-   `act-ledger.mjs record` the result. **Five guardrails are mandatory:** per-action approval · dry-run first ·
-   idempotent · draft/reversible-first (`mode:"draft"` channels only stage drafts — never auto-publish) ·
-   never touch `policy.never_auto` (paid-ads/bulk-email/dm). Write each result into the task's `execution` block.
+   explicitly opts in. **Enumerate the reversible actions deterministically:**
+   `node <conductor-base>/scripts/act-execute.mjs plan` — it scans the `act/` artifacts and writes
+   `act/executions.json`, one action per tweet (schedule/draft) · email (`.eml` → Gmail draft) · blog post
+   (CMS draft) · automatable GTM row (issue), each with a **dry-run preview** + idempotency key. (`web`/deploy
+   is handled by the Deploy stage; `never_auto` + `human` tasks are excluded.) Then, **per action**: discover
+   the connector via ToolSearch (the channel's `mcp_hint` in `act-executors.json`) — if none, leave the
+   artifact and mark `skipped`; else `act-ledger.mjs check <key>` (skip if already `executed`), show the
+   preview on the dashboard for **PER-ACTION approval**, call the MCP tool, then record with both
+   `act-execute.mjs record --key <key> --status executed --result <url>` and `act-ledger.mjs record`.
+   **Five guardrails are mandatory:** per-action approval · dry-run first · idempotent · draft/reversible-first
+   (`mode:"draft"` only stages drafts — never auto-publish) · never `policy.never_auto`.
    **Deploy / go-live (D1, the highest-value action):** for each web/software target (the built app's dist
    and the ACT landing page), run `node <conductor-base>/scripts/act-deploy.mjs plan <targetDir>`. If it
    exits 3 (`needsServer`) → it's a server app: skip it (Deploy D2, not built) but still deploy the static
@@ -290,7 +293,7 @@ board once both engines share a core.)
 - `scripts/scan-surface.mjs` — advisory security scan of the persona registry + skill/settings/hook files for injection patterns; writes `scan-report.json`.
 - `scripts/route-preview.mjs` — preview which specialist persona the router would pick for a requirement (mirrors the live specialist-router scoring); read-only demonstrator.
 - `references/act-contract.md` + `scripts/act-scan.mjs` + `scripts/act-build-artifacts.mjs` — optional **ACT** stage (Stage 4.5, Phase 1): scan/gate GROW outputs, write ship-ready artifacts (file-only), build-deliverables approval-gated. Schema = `ACT-PLAN.json`.
-- `references/act-phase2.md` + `references/act-executors.json` + `scripts/act-ledger.mjs` — **ACT Phase 2** (opt-in, off by default): outward execution via the user's MCP connectors behind 5 guardrails (per-action approval · dry-run · idempotency ledger · draft/reversible-first · never-auto list).
+- `references/act-phase2.md` + `references/act-executors.json` + `scripts/act-ledger.mjs` + `scripts/act-execute.mjs` — **ACT Phase 2** (opt-in, off by default): outward execution of reversible channels (schedule tweets · Gmail drafts · CMS drafts · issues) via the user's MCP connectors behind 5 guardrails. `act-execute.mjs` enumerates actions + previews; `act-ledger.mjs` enforces idempotency.
 - `scripts/lessons-evolve.mjs` + `commands/suite-evolve.md` — **`/suite-evolve`**: promote mature lessons → durable project-local `.agentic-builder/learned-rules.md` (human-gated, append-only). Loaded at planning warm-start.
 - `references/research-first.md` — spec for fix #5 (optional RESEARCH-first pre-stage: research → BUILD → GROW → ACT). Not built.
 - `references/deploy-stage.md` + `scripts/act-deploy.mjs` — **Deploy stage D1 (go-live)**: deploy the built app + landing page to a live URL (GitHub Pages default), gated · idempotent · verify-200 · `LAUNCH.md`. Static-only; server apps → D2 (not built).
