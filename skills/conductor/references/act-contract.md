@@ -23,6 +23,8 @@ spent. Two executors:
 |---|---|
 | `publishable` · social | `tweets.json` (queue: text ≤280, order, suggested_time) + `tweets.txt` |
 | `publishable` · email | `emails/<n>.eml` drafts (To/Subject/body) — drafts, never sent |
+| `publishable` · email-sequence | `sequences/<id>-<seq>-NN.eml` (numbered drafts) + `<seq>.md` index — from `sequences:[{name,steps:[{step,delay,to,subject,body}]}]`; bulk send never auto-run |
+| `publishable` · ad-set | `<id>.ads.csv` from `ads:[{platform,campaign,headlines[],descriptions[],keywords[],audience,budget}]` — validated (Google headline ≤30 / desc ≤90); **never auto-launched** (paid-ads) |
 | `publishable` · blog/cms | `posts/<slug>.md` (CMS front-matter) + `assets.md` |
 | `plan` (GTM/roadmap) | `gtm-tasks.json` + `gtm.csv` (Jira/Linear/Sheets import) |
 | **every** deliverable | `<id>.tasks.md` — checklist, each task tagged `automatable` / `human` |
