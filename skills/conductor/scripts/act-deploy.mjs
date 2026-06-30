@@ -81,6 +81,29 @@ if (cmd === "plan") {
   process.exit(d.needsServer ? 3 : 0);   // exit 3 = needs D2
 }
 
+if (cmd === "server-plan") {
+  // D2: plan a server-host deploy (Render default) for an app that needs a backend.
+  if (!pos) { console.error("server-plan: need <dir>"); process.exit(2); }
+  const target = path.resolve(process.cwd(), pos);
+  const d = detect(target);
+  const pkg = rj(path.join(target, "package.json")) || {};
+  const start = (pkg.scripts && (pkg.scripts.start || pkg.scripts.serve)) ? "npm start" : "node server.js";
+  // env vars the app expects (from .env.example written by stack-scaffold)
+  let envVars = [];
+  try { envVars = fs.readFileSync(path.join(target, ".env.example"), "utf8").split("\n").map((l) => (l.match(/^([A-Z0-9_]+)=/) || [])[1]).filter(Boolean); } catch {}
+  const host = (() => { try { execSync(process.platform === "win32" ? "where render" : "command -v render", { stdio: "ignore" }); return "render-cli"; } catch { return "render"; } })();
+  const key = "srv-" + crypto.createHash("sha1").update(`${pos}|${envVars.sort().join(",")}`).digest("hex").slice(0, 12);
+  const plan = {
+    target: pos, needsServer: d.needsServer, host, build: d.buildCmd || "npm ci && npm run build",
+    start, health: "/", env_vars: envVars, env_source: ".env.example (fill real keys in the host UI)",
+    idempotency_key: key,
+    note: d.needsServer ? "server deploy: provision host + set env + deploy + run migrations + verify health 200" : "this is static → use D1 (act-deploy plan) instead",
+    migrations: "forward-only by default; destructive migrations require explicit confirmation",
+  };
+  console.log(JSON.stringify(plan, null, 2));
+  process.exit(0);
+}
+
 if (cmd === "verify") {
   const url = pos; if (!url) { console.error("verify: need <url>"); process.exit(2); }
   const lib = url.startsWith("https") ? https : http;
@@ -131,7 +154,7 @@ if (cmd === "launch") {
   process.exit(0);
 }
 
-if (!["plan", "verify", "manual", "launch"].includes(cmd)) {
-  console.error("usage: act-deploy.mjs plan <dir> | verify <url> | manual <dir> | launch [--act-dir act]");
+if (!["plan", "server-plan", "verify", "manual", "launch"].includes(cmd)) {
+  console.error("usage: act-deploy.mjs plan <dir> | server-plan <dir> | verify <url> | manual <dir> | launch [--act-dir act]");
   process.exit(2);
 }

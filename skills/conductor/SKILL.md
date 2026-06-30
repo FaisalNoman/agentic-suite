@@ -80,6 +80,14 @@ Confirm the split with the user once (dashboard-first), then persist both to `su
 Set `suite-state.phase = "build"`. Tell the user: "Phase 1/2 — BUILD. Handing the software scope to
 agentic-app-builder; its dashboard opens on :4317."
 
+**Real-stack detection (D2, opt-in — see `references/realstack-d2.md`).** Determine the app's backend shape:
+ask whether it needs **accounts/auth · payments · persistent/shared data · file storage · transactional email**.
+If all "no" → static app (D1 path). If any "yes" → run
+`node <conductor-base>/scripts/stack-scaffold.mjs '{"needs":{…},"outDir":"build"}'` → it writes `build/STACK.md`
++ `build/.env.example` (managed services: Supabase auth+db+storage · Stripe payments · Resend email), and
+**add "integrate these managed services per `STACK.md`; read config from env" to `build_brief`** so the build
+agents wire the SDKs (real keys are supplied later at deploy, never committed).
+
 Invoke the **agentic-app-builder** skill (Skill tool) with `build_brief`. Let it run its full pipeline
 (interview/plan/TDD/impl/review) to completion — the conductor does not interfere. Direct its work into
 a `build/` working area so its `plan/` is isolated.
@@ -213,8 +221,13 @@ Phase 1 is **file-only** — it writes under `act/`, never posts/sends/deploys. 
    (`mode:"draft"` only stages drafts — never auto-publish) · never `policy.never_auto`.
    **Deploy / go-live (D1, the highest-value action):** for each web/software target (the built app's dist
    and the ACT landing page), run `node <conductor-base>/scripts/act-deploy.mjs plan <targetDir>`. If it
-   exits 3 (`needsServer`) → it's a server app: skip it (Deploy D2, not built) but still deploy the static
-   targets, and tell the user the app needs a server host. Else: resolve the connector (default **GitHub
+   exits 3 (`needsServer`) → **Deploy D2 (server host):** still deploy any static targets (landing) via D1,
+   then run `node <conductor-base>/scripts/act-deploy.mjs server-plan build` → resolve a server-host connector
+   (default **Render**; Fly/Railway if their CLI/MCP is present; none → write the manual steps), set the env
+   vars from `STACK.md`/`.env.example` (**user supplies real keys in the host UI — never committed**), deploy,
+   run migrations (**forward-only; destructive needs explicit confirm**), and `verify` the health URL (200).
+   Per-action approval + idempotent (server key). This is billable/stateful — note the cost/plan. Else (static):
+   resolve the connector (default **GitHub
    Pages**; auto-use Netlify/Vercel if their CLI/MCP is present; if none, run `act-deploy.mjs manual` and
    surface the steps), show the dry-run + **per-action approval**, run the build + connector command, then
    **verify** with `act-deploy.mjs verify <url>` (must be 200), and record the live URL. Finally run
@@ -308,6 +321,6 @@ board once both engines share a core.)
 - `references/deploy-stage.md` + `scripts/act-deploy.mjs` — **Deploy stage D1 (go-live)**: deploy the built app + landing page to a live URL (GitHub Pages default), gated · idempotent · verify-200 · `LAUNCH.md`. Static-only; server apps → D2 (not built).
 - `scripts/smoke-check.mjs` — **verify-it-runs** (post-gate): detect run/port, boot, probe 200 → live preview URL; exit 4 = static/library (skip).
 - `scripts/launch-cockpit.mjs` — **launch cockpit**: generates `LAUNCH.html` (live deploy URLs · reversible-action status · remaining manual steps · copy-to-run commands) at wrap.
-- `references/realstack-d2.md` — spec for **Deploy D2 / real stack** (auth/db/payments via managed services + server-host deploy). Not built.
+- `references/realstack-d2.md` + `scripts/stack-scaffold.mjs` + `scripts/act-deploy.mjs server-plan` — **Deploy D2 / real stack (v1)**: backend-shape → managed services (`STACK.md` + `.env.example`) → server-host deploy (Render default). SDK integration is build-runtime; outward deploy is orchestrator-run, gated.
 - `template/suite-dashboard/` — unified suite board (U1): aggregates BUILD+GROW+ACT into one page (phase rail · combined tokens · merged Replay), read-only over the sibling phase state.
 - `scripts/suite-doctor.mjs` + `commands/suite-doctor.md` — pre-flight environment check (node, skills, registry, ports, state, write access); PASS/WARN/FAIL, exit 0/1/2. Advisory.

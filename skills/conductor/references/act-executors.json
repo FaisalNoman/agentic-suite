@@ -47,6 +47,14 @@
       "idempotency": "slug", "notes": "Create an unpublished CMS draft. Human publishes."
     },
     {
+      "channel": "server", "capability": "deploy-server",
+      "mcp_hint": "render deploy OR fly deploy OR railway up",
+      "reversible": true, "mode": "auto", "default_host": "render",
+      "hosts": { "render": "render deploy", "fly": "fly deploy", "railway": "railway up" },
+      "driver": "scripts/act-deploy.mjs server-plan",
+      "notes": "Deploy D2 — full-stack/server apps (env from STACK.md/.env.example, migrations, health-verify). Billable/stateful → per-action approval + cost note. Real keys via host UI, never committed."
+    },
+    {
       "channel": "sheet", "capability": "write-rows",
       "mcp_hint": "google sheets append OR drive create file",
       "reversible": true, "mode": "auto",
