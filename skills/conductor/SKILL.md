@@ -115,6 +115,10 @@ check, not prose you reason about — so a pass cannot be hallucinated. **This i
    Never silently move on.
 4. **`passed === true` / exit 0** → set `build_status.gate_script_passed = true`, record the rest of
    `build_status`, and continue.
+5. **Smoke-check (verify it runs).** `node <conductor-base>/scripts/smoke-check.mjs plan build` → if `runnable`,
+   boot it (run its `install` → `build` → `start`) in the background and `smoke-check.mjs probe <url>` until
+   200; report the **live preview URL** in the summary. Exit 4 (no start script) → static/library, skip. The
+   founder should never have to debug setup — confirm it boots.
 
 ```json
 "build_status": {
@@ -230,6 +234,11 @@ produced (the growth deliverables and where they live). Point the user at both d
 for the full audit trail. agentic-worker also generates `grow/outputs/showcase.html` — an interactive page
 of every GROW deliverable; surface that path prominently as the one-stop view of the growth work.
 
+**Launch cockpit.** If ACT ran (deploys/executions exist), generate the go-live board:
+`node <conductor-base>/scripts/launch-cockpit.mjs build` → opens `LAUNCH.html` — live deploy URLs, the
+reversible actions + their status, and the remaining manual steps (analytics, domain), each with a
+copy-to-run command. This is the founder's single "is it launched?" view; surface it prominently.
+
 ## Optional hardening (hooks) — opt-in, off by default
 
 The suite runs hook-free by default (zero-config, in-session). For a long or unattended run, the user can
@@ -297,5 +306,8 @@ board once both engines share a core.)
 - `scripts/lessons-evolve.mjs` + `commands/suite-evolve.md` — **`/suite-evolve`**: promote mature lessons → durable project-local `.agentic-builder/learned-rules.md` (human-gated, append-only). Loaded at planning warm-start.
 - `references/research-first.md` — spec for fix #5 (optional RESEARCH-first pre-stage: research → BUILD → GROW → ACT). Not built.
 - `references/deploy-stage.md` + `scripts/act-deploy.mjs` — **Deploy stage D1 (go-live)**: deploy the built app + landing page to a live URL (GitHub Pages default), gated · idempotent · verify-200 · `LAUNCH.md`. Static-only; server apps → D2 (not built).
+- `scripts/smoke-check.mjs` — **verify-it-runs** (post-gate): detect run/port, boot, probe 200 → live preview URL; exit 4 = static/library (skip).
+- `scripts/launch-cockpit.mjs` — **launch cockpit**: generates `LAUNCH.html` (live deploy URLs · reversible-action status · remaining manual steps · copy-to-run commands) at wrap.
+- `references/realstack-d2.md` — spec for **Deploy D2 / real stack** (auth/db/payments via managed services + server-host deploy). Not built.
 - `template/suite-dashboard/` — unified suite board (U1): aggregates BUILD+GROW+ACT into one page (phase rail · combined tokens · merged Replay), read-only over the sibling phase state.
 - `scripts/suite-doctor.mjs` + `commands/suite-doctor.md` — pre-flight environment check (node, skills, registry, ports, state, write access); PASS/WARN/FAIL, exit 0/1/2. Advisory.
