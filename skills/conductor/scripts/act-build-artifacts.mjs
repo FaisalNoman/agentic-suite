@@ -12,6 +12,8 @@
 //            id, source, title, class:"software|publishable|plan",
 //            channel:"social|email|blog|cms|null", executor:"build|artifact",
 //            tweets?:[{text,suggested_time?}], emails?:[{to,subject,body}],
+//            sequences?:[{name,steps:[{step?,delay?,to?,subject,body}]}],   // → numbered .eml drafts + index
+//            ads?:[{platform:"google|meta",campaign?,headlines:[],descriptions:[],keywords?:[],audience?,budget?}], // → ads.csv (never auto-launched)
 //            posts?:[{slug,title,frontmatter?,body}], gtm?:[task], tasks?:[task] } ] }
 //          task = { id?, text, auto:"automatable|human", channel?, owner?, due?, depends_on?, status? }
 // Writes:  <actDir>/ artifacts + <actDir>/ACT-PLAN.json
@@ -89,6 +91,40 @@ for (const d of dels) {
       outputs.push({ ...W(`emails/${id}-${i + 1}.eml`, eml), kind: "email-draft" });
     });
   }
+  // email-sequence → sequences/<id>-<seq>-NN.eml (numbered drafts, never sent) + an index
+  if (Array.isArray(d.sequences) && d.sequences.length) {
+    d.sequences.forEach((seq, si) => {
+      const sslug = String(seq.name || `seq${si + 1}`).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `seq${si + 1}`;
+      const steps = Array.isArray(seq.steps) ? seq.steps : [];
+      steps.forEach((st, i) => {
+        const subj = String(st.subject || "");
+        if (subj.length > 120) warnings.push(`${id}: ${sslug} step ${i + 1} subject ${subj.length} chars (long)`);
+        const eml = `To: ${st.to || "{{lead.email}}"}\nSubject: ${subj}\nX-ACT: draft (not sent)\nX-Sequence: ${seq.name || sslug} step ${st.step || i + 1}${st.delay ? ` (send ${st.delay})` : ""}\nContent-Type: text/plain; charset=utf-8\n\n${st.body || ""}\n`;
+        outputs.push({ ...W(`sequences/${id}-${sslug}-${String(i + 1).padStart(2, "0")}.eml`, eml), kind: "sequence-email-draft" });
+      });
+      const idx = [`# ${seq.name || sslug} — ${steps.length}-step sequence`, "", `> source: \`${d.source}\` · drafts only — load into your sender (Instantly/Smartlead/Mailchimp). Bulk send is never auto-run.`, ""];
+      steps.forEach((st, i) => idx.push(`${i + 1}. **${st.subject || "(no subject)"}**${st.delay ? ` — send ${st.delay}` : ""}`));
+      outputs.push({ ...W(`sequences/${id}-${sslug}.md`, idx.join("\n") + "\n"), kind: "sequence-index" });
+    });
+  }
+  // ad-set → <id>.ads.csv (copy for import; NEVER auto-launched — paid-ads is never_auto)
+  if (Array.isArray(d.ads) && d.ads.length) {
+    const head = ["platform", "campaign", "type", "headline", "description", "keywords", "audience", "budget"];
+    const rows = [];
+    d.ads.forEach((a) => {
+      const plat = String(a.platform || "google").toLowerCase();
+      const heads = Array.isArray(a.headlines) ? a.headlines : (a.headline ? [a.headline] : []);
+      const descs = Array.isArray(a.descriptions) ? a.descriptions : (a.description ? [a.description] : []);
+      if (plat === "google") {
+        heads.forEach((h) => { if (String(h).length > 30) warnings.push(`${id}: google headline ${String(h).length} chars (>30)`); });
+        descs.forEach((dd) => { if (String(dd).length > 90) warnings.push(`${id}: google description ${String(dd).length} chars (>90)`); });
+      }
+      const n = Math.max(heads.length, descs.length, 1);
+      for (let i = 0; i < n; i++) rows.push({ platform: plat, campaign: a.campaign || d.title, type: a.type || (plat === "google" ? "RSA" : "ad"), headline: heads[i] || "", description: descs[i] || "", keywords: (a.keywords || []).join("; "), audience: a.audience || "", budget: a.budget || "" });
+    });
+    const csv = [head.join(","), ...rows.map((r) => head.map((h) => csvCell(r[h])).join(","))].join("\n") + "\n";
+    outputs.push({ ...W(`${id}.ads.csv`, csv), kind: "ad-set-csv" });
+  }
   // blog/cms → posts/<slug>.md with front-matter
   if ((ch === "blog" || ch === "cms") && Array.isArray(d.posts) && d.posts.length) {
     d.posts.forEach((p) => {
@@ -125,7 +161,7 @@ const plan = {
   schema: 1, generated_at: now(), source: outputsDir,
   act_mode: byExec.build ? "build+artifacts" : "artifacts",
   gate: { offered, reason: offered ? `${(byClass.software || 0) + (byClass.publishable || 0)} software/publishable deliverables` : "no software/publishable deliverables", trigger_rule: "offer ACT only when >=1 deliverable.class in [software, publishable]" },
-  formats: { social: ["tweets.json", "tweets.txt"], email: ["eml-drafts"], blog: ["cms-markdown"], plan: ["tasks-json", "tasks-csv"], always: ["tasks-md"] },
+  formats: { social: ["tweets.json", "tweets.txt"], email: ["eml-drafts"], sequence: ["sequences/*.eml", "sequence-index"], ads: ["ads.csv (never auto-launched)"], blog: ["cms-markdown"], plan: ["tasks-json", "tasks-csv"], always: ["tasks-md"] },
   deliverables: planDeliverables,
   summary: { total: planDeliverables.length, by_class: byClass, by_executor: byExec, automatable_tasks: autoTasks, human_tasks: humanTasks, pending_approval: planDeliverables.filter((d) => d.approval.status === "pending").map((d) => d.id) },
   warnings,
