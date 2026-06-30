@@ -186,6 +186,15 @@ SKIPS re-interviewing — its SEO/marketing/sales/research agents work against t
 stack, URLs). Its specialist-registry router (P6) picks the business personas from the shared
 `agents/registry.json`. Let it run to completion.
 
+**GTM roadmap (when the grow brief includes a launch / go-to-market / marketing-strategy ask).** Instruct
+agentic-worker to emit `grow/outputs/gtm-roadmap.json` per `references/gtm-roadmap-contract.md` — a phased,
+budgeted, channel-tagged roadmap where **every task carries a concrete `asset` AND a human `guidelines`
+playbook AND an `owner`** (🤖 suite-made · 🔌 needs connector · 🧑 you do this), so no asset is handed over
+without "how to ship it". Then render: `node <conductor-base>/scripts/gtm-roadmap.mjs grow/outputs/gtm-roadmap.json --no-open`
+→ writes `gtm-roadmap.md` + interactive `gtm-roadmap.html`; surface both in the showcase. ACT (Stage 4.5)
+then turns each task's `asset` into a real artifact where the type is supported; `human`/`connector` tasks keep
+their guidelines for the founder.
+
 ## STAGE 4.5 — ACT (optional, opt-in) — make GROW deliverables ship-ready
 
 Phase 1 is **file-only** — it writes under `act/`, never posts/sends/deploys. Full schema in
@@ -317,6 +326,7 @@ board once both engines share a core.)
 - `references/act-contract.md` + `scripts/act-scan.mjs` + `scripts/act-build-artifacts.mjs` — optional **ACT** stage (Stage 4.5, Phase 1): scan/gate GROW outputs, write ship-ready artifacts (file-only), build-deliverables approval-gated. Schema = `ACT-PLAN.json`.
 - `references/act-phase2.md` + `references/act-executors.json` + `scripts/act-ledger.mjs` + `scripts/act-execute.mjs` — **ACT Phase 2** (opt-in, off by default): outward execution of reversible channels (schedule tweets · Gmail drafts · CMS drafts · issues) via the user's MCP connectors behind 5 guardrails. `act-execute.mjs` enumerates actions + previews; `act-ledger.mjs` enforces idempotency.
 - `scripts/lessons-evolve.mjs` + `commands/suite-evolve.md` — **`/suite-evolve`**: promote mature lessons → durable project-local `.agentic-builder/learned-rules.md` (human-gated, append-only). Loaded at planning warm-start.
+- `references/gtm-roadmap-contract.md` + `scripts/gtm-roadmap.mjs` — **GTM-roadmap deliverable**: phased/budgeted/channel-tagged roadmap where every task carries its asset + a human execution playbook + an owner badge (suite/connector/human). Renders `gtm-roadmap.md` + interactive `gtm-roadmap.html`.
 - `references/research-first.md` — spec for fix #5 (optional RESEARCH-first pre-stage: research → BUILD → GROW → ACT). Not built.
 - `references/deploy-stage.md` + `scripts/act-deploy.mjs` — **Deploy stage D1 (go-live)**: deploy the built app + landing page to a live URL (GitHub Pages default), gated · idempotent · verify-200 · `LAUNCH.md`. Static-only; server apps → D2 (not built).
 - `scripts/smoke-check.mjs` — **verify-it-runs** (post-gate): detect run/port, boot, probe 200 → live preview URL; exit 4 = static/library (skip).
