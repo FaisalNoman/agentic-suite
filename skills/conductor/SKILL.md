@@ -212,10 +212,14 @@ Phase 1 is **file-only** — it writes under `act/`, never posts/sends/deploys. 
    (tweets.json/txt · .eml drafts · posts · gtm-tasks.json/csv · per-deliverable `.tasks.md`), validates
    (≤280, CSV/eml), and emits `act/ACT-PLAN.json`. Surface any `warnings`.
 4. **Executor A — build (APPROVAL-GATED).** For each `executor:"build"` deliverable (status `pending` in
-   ACT-PLAN), **ask on the dashboard before building** (it spawns a full build). On Approve: synthesize a
-   `build_brief` from the deliverable `.md` + `HANDOFF.json`, invoke **agentic-app-builder** in the
-   deliverable's `build_ref.dir` (FEATURE if a repo exists there, else GREENFIELD), then update its
-   ACT-PLAN entry (`approval.status`, `status`, `build_ref.result`). Never auto-build.
+   ACT-PLAN), **ask on the dashboard before building**. On Approve, pick the cheapest path that fits:
+   - **Boilerplate pages** (privacy · terms · security · status · waitlist · pricing) → no full build agent
+     needed: `node <conductor-base>/scripts/page-scaffold.mjs <spec.json>` writes them as self-contained
+     static HTML under `act/pages/` (legal pages carry a "template — review with counsel" banner). Fast + deterministic.
+   - **Complex software** (the app, a custom landing page) → synthesize a `build_brief` from the deliverable
+     `.md` + `HANDOFF.json` and invoke **agentic-app-builder** in `build_ref.dir` (FEATURE if a repo exists
+     there, else GREENFIELD).
+   Then update its ACT-PLAN entry (`approval.status`, `status`, `build_ref.result`). Never auto-build.
 5. **Phase 2 — outward execution (OPT-IN, off by default; see `references/act-phase2.md`).** Only if the user
    explicitly opts in. **Enumerate the reversible actions deterministically:**
    `node <conductor-base>/scripts/act-execute.mjs plan` — it scans the `act/` artifacts and writes
@@ -327,6 +331,7 @@ board once both engines share a core.)
 - `references/act-phase2.md` + `references/act-executors.json` + `scripts/act-ledger.mjs` + `scripts/act-execute.mjs` — **ACT Phase 2** (opt-in, off by default): outward execution of reversible channels (schedule tweets · Gmail drafts · CMS drafts · issues) via the user's MCP connectors behind 5 guardrails. `act-execute.mjs` enumerates actions + previews; `act-ledger.mjs` enforces idempotency.
 - `scripts/lessons-evolve.mjs` + `commands/suite-evolve.md` — **`/suite-evolve`**: promote mature lessons → durable project-local `.agentic-builder/learned-rules.md` (human-gated, append-only). Loaded at planning warm-start.
 - `references/gtm-roadmap-contract.md` + `scripts/gtm-roadmap.mjs` — **GTM-roadmap deliverable**: phased/budgeted/channel-tagged roadmap where every task carries its asset + a human execution playbook + an owner badge (suite/connector/human). Renders `gtm-roadmap.md` + interactive `gtm-roadmap.html`.
+- `scripts/page-scaffold.mjs` — **ACT page scaffolder** (Executor A boilerplate path): generates static privacy/terms/security/status/waitlist/pricing pages (legal = template + review banner) without a full build agent; complex app/landing still uses agentic-app-builder.
 - `references/research-first.md` — spec for fix #5 (optional RESEARCH-first pre-stage: research → BUILD → GROW → ACT). Not built.
 - `references/deploy-stage.md` + `scripts/act-deploy.mjs` — **Deploy stage D1 (go-live)**: deploy the built app + landing page to a live URL (GitHub Pages default), gated · idempotent · verify-200 · `LAUNCH.md`. Static-only; server apps → D2 (not built).
 - `scripts/smoke-check.mjs` — **verify-it-runs** (post-gate): detect run/port, boot, probe 200 → live preview URL; exit 4 = static/library (skip).
