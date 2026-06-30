@@ -12,9 +12,10 @@
 // never_auto channels are excluded entirely.
 //
 // Subcommands:
-//   plan   [--act-dir act]                         → scan → write act/executions.json (+ previews); print
-//   record --key K --status executed|failed|skipped [--result R] [--act-dir act]
-//   status [--act-dir act]
+//   plan     [--act-dir act]                       → scan → write act/executions.json (+ previews); print
+//   dispatch [--act-dir act] [--json]              → per-action loop: connector-discovery query + dry-run + record cmds
+//   record   --key K --status executed|failed|skipped [--result R] [--act-dir act]
+//   status   [--act-dir act]
 // Exit: 0 ok · 2 bad args
 
 import fs from "node:fs";
@@ -43,18 +44,19 @@ function listFiles(d, re) { try { return fs.readdirSync(d).filter((f) => re.test
 if (cmd === "plan") {
   const { byCh, neverAuto } = registry();
   const execs = [];
-  const add = (channel, action, payload, preview, src) => {
+  const add = (channel, action, payload, preview, src, extra = {}) => {
     const c = byCh[channel]; if (!c) return;                 // no connector for this channel
     if (neverAuto.has(channel) || (c.capability && neverAuto.has(c.capability))) return;
     execs.push({ id: `e${execs.length + 1}`, channel, action, mode: c.mode || "draft",
       connector: c.capability, mcp_hint: c.mcp_hint, src,
-      payload, preview, idempotency_key: keyOf(channel, action, payload), status: "planned" });
+      payload, preview, idempotency_key: keyOf(channel, action, payload), status: "planned", ...extra });
   };
 
-  // social — one action per tweet (mode: draft/schedule, never auto-publish)
+  // social — one action per tweet (mode: draft/schedule, never auto-publish); carry a schedule time if given
   for (const f of listFiles(actDir, /\.tweets\.json$/i)) {
     const q = rj(f) || []; q.forEach((t) => add("social", "schedule", t.text,
-      `schedule tweet (${(t.text || "").length}/280): "${(t.text || "").slice(0, 80)}${(t.text || "").length > 80 ? "…" : ""}"`, path.basename(f)));
+      `schedule tweet (${(t.text || "").length}/280)${t.suggested_time ? " @ " + t.suggested_time : ""}: "${(t.text || "").slice(0, 80)}${(t.text || "").length > 80 ? "…" : ""}"`, path.basename(f),
+      t.suggested_time ? { when: t.suggested_time } : {}));
   }
   // email — one per .eml draft (create draft, never send)
   for (const f of listFiles(path.join(actDir, "emails"), /\.eml$/i)) {
@@ -83,6 +85,36 @@ if (cmd === "plan") {
   process.exit(0);
 }
 
+if (cmd === "dispatch") {
+  // Deterministic per-action loop for the orchestrator: for each PLANNED reversible
+  // action emit the connector-discovery query, the dry-run card, and the exact
+  // record commands. The orchestrator runs ToolSearch(discover) → per-action
+  // approval → the MCP call → the matching record command. No outward call here.
+  const store = rj(EXEC) || { executions: [] };
+  const planned = store.executions.filter((e) => e.status === "planned");
+  const self = "node <conductor-base>/scripts/act-execute.mjs";
+  if (!planned.length) { console.log("No planned actions to dispatch (run `plan` first, or all are recorded)."); process.exit(0); }
+  const out = planned.map((e) => ({
+    id: e.id, channel: e.channel, action: e.action, mode: e.mode, idempotency_key: e.idempotency_key, when: e.when || null,
+    discover: `ToolSearch: ${e.mcp_hint}`,
+    dry_run: e.preview,
+    guardrails: `per-action approval · ${e.mode === "draft" ? "DRAFT only (never auto-publish/send)" : "reversible, approved"} · idempotent (check ledger ${e.idempotency_key})`,
+    on_success: `${self} record --key ${e.idempotency_key} --status executed --result <url|id> --act-dir ${opt("act-dir", "act")}`,
+    on_skip: `${self} record --key ${e.idempotency_key} --status skipped --result "<reason>" --act-dir ${opt("act-dir", "act")}`,
+  }));
+  if (rest.includes("--json")) { console.log(JSON.stringify({ dispatch: out }, null, 2)); process.exit(0); }
+  console.log(`Dispatch plan — ${out.length} reversible action(s). Per action: discover connector → PER-ACTION approval → call → record.\n`);
+  out.forEach((d) => {
+    console.log(`[${d.id}] ${d.channel}/${d.action}  (${d.mode})${d.when ? "  @ " + d.when : ""}`);
+    console.log(`   discover : ${d.discover}`);
+    console.log(`   dry-run  : ${d.dry_run}`);
+    console.log(`   guards   : ${d.guardrails}`);
+    console.log(`   ✓ done   : ${d.on_success}`);
+    console.log(`   ✗ skip   : ${d.on_skip}\n`);
+  });
+  process.exit(0);
+}
+
 if (cmd === "record") {
   const key = opt("key"), status = opt("status", "executed"), result = opt("result", null);
   if (!key) { console.error("record: need --key"); process.exit(2); }
@@ -103,5 +135,5 @@ if (cmd === "status") {
   process.exit(0);
 }
 
-console.error("usage: act-execute.mjs plan | record --key K --status S [--result R] | status  [--act-dir act]");
+console.error("usage: act-execute.mjs plan | dispatch [--json] | record --key K --status S [--result R] | status  [--act-dir act]");
 process.exit(2);

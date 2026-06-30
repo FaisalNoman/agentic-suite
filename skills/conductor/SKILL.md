@@ -223,9 +223,11 @@ Phase 1 is **file-only** — it writes under `act/`, never posts/sends/deploys. 
 5. **Phase 2 — outward execution (OPT-IN, off by default; see `references/act-phase2.md`).** Only if the user
    explicitly opts in. **Enumerate the reversible actions deterministically:**
    `node <conductor-base>/scripts/act-execute.mjs plan` — it scans the `act/` artifacts and writes
-   `act/executions.json`, one action per tweet (schedule/draft) · email (`.eml` → Gmail draft) · blog post
-   (CMS draft) · automatable GTM row (issue), each with a **dry-run preview** + idempotency key. (`web`/deploy
-   is handled by the Deploy stage; `never_auto` + `human` tasks are excluded.) Then, **per action**: discover
+   `act/executions.json`, one action per tweet (schedule/draft, with a `when` time if given) · email (`.eml` →
+   Gmail draft) · blog post (CMS draft) · automatable GTM row (issue), each with a **dry-run preview** +
+   idempotency key. (`web`/deploy is handled by the Deploy stage; `never_auto` + `human` tasks are excluded.)
+   Run `act-execute.mjs dispatch` for the **deterministic per-action loop** — it prints, per action, the
+   connector-discovery `ToolSearch` query, the dry-run card, and the exact `record` commands. Then, **per action**: discover
    the connector via ToolSearch (the channel's `mcp_hint` in `act-executors.json`) — if none, leave the
    artifact and mark `skipped`; else `act-ledger.mjs check <key>` (skip if already `executed`), show the
    preview on the dashboard for **PER-ACTION approval**, call the MCP tool, then record with both
