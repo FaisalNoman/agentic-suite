@@ -52,7 +52,8 @@ function render(s){
     const rows=p.present?`<div class="big">${c.done||0}/${c.total||0}</div><div class="st">tasks done</div>
       <div class="row"><span><i style="background:var(--amber)"></i>${c.working||0}</span><span><i style="background:var(--green)"></i>${c.done||0}</span><span><i style="background:var(--red)"></i>${c.blocked||0}</span></div>`
       :`<div class="big" style="color:var(--dim)">—</div><div class="st">not started</div>`;
-    const link=p.url?`<div class="lnk"><a href="${p.url}" target="_blank">open board ↗</a></div>`
+    const pend=(k==="ACT"&&p.present&&(p.pending_approval||[]).length)?` <span class="st">· ${p.pending_approval.length} pending</span>`:"";
+    const link=p.url?`<div class="lnk"><a href="${p.url}" target="_blank">open ${k==="ACT"?"cockpit":"board"} ↗</a>${pend}</div>`
       :(k==="ACT"&&p.present?`<div class="lnk st">${(p.pending_approval||[]).length} pending approval</div>`:"");
     div.innerHTML=`<h3>${k}<span class="st">${p.stage||""}</span></h3>${rows}${link}`;
     if(idx<2){const a=document.createElement("span");a.className="arrow";a.textContent="→";div.appendChild(a);}

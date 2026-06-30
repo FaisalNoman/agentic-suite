@@ -38,7 +38,7 @@ function actSummary() {
   const p = rj(path.join(ROOT, "act", "ACT-PLAN.json"));
   if (!p) return { key: "ACT", present: false };
   const s = p.summary || {};
-  return { key: "ACT", present: true, stage: "act", url: null,
+  return { key: "ACT", present: true, stage: "act", url: "/launch",   // ACT's board = the launch cockpit
     counts: { total: s.total || 0, done: (p.deliverables || []).filter((d) => d.status === "done").length, working: 0, blocked: 0 },
     pending_approval: s.pending_approval || [], by_executor: s.by_executor || {} };
 }
@@ -78,6 +78,14 @@ const server = http.createServer((req, res) => {
     if (req.url === "/events") { res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" }); res.write(`data: ${suiteState().replace(/\n/g, " ")}\n\n`); clients.add(res); const ka = setInterval(() => { try { res.write(": ka\n\n"); } catch {} }, 15000); req.on("close", () => { clearInterval(ka); clients.delete(res); }); return; }
     if (req.url === "/suite-state") { res.writeHead(200, { "Content-Type": "application/json" }); res.end(suiteState()); return; }
     if (req.url === "/timeline") { res.writeHead(200, { "Content-Type": "application/x-ndjson" }); res.end(timeline()); return; }
+    if (req.url === "/launch") {                          // ACT's board = the launch cockpit
+      const lh = path.join(ROOT, "LAUNCH.html");
+      if (fs.existsSync(lh)) { res.writeHead(200, { "Content-Type": "text/html" }); res.end(fs.readFileSync(lh)); return; }
+      const hasPlan = fs.existsSync(path.join(ROOT, "act", "ACT-PLAN.json"));
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(`<!doctype html><meta charset=utf-8><body style="background:#0b0e14;color:#aeb9c7;font-family:system-ui;padding:40px"><h2 style="color:#7aa2ff">ACT — launch cockpit</h2><p>${hasPlan ? "Cockpit not generated yet. It is written at wrap-up (Stage 5):<br><code style=\"color:#e6edf3\">node &lt;conductor-base&gt;/scripts/launch-cockpit.mjs build</code><br>then refresh this page." : "ACT has not run yet — no <code>act/ACT-PLAN.json</code>."}</p><p style="margin-top:18px"><a href="/" style="color:#7aa2ff">← back to suite board</a></p></body>`);
+      return;
+    }
     res.writeHead(200, { "Content-Type": "text/html" }); res.end(fs.readFileSync(HTML));
   } catch (e) { try { res.writeHead(500); res.end(String(e?.message || e)); } catch {} }
 });
