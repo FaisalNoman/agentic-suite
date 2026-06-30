@@ -1,4 +1,16 @@
-# Real stack + Deploy D2 — server/full-stack apps (spec, not built)
+# Real stack + Deploy D2 — server/full-stack apps
+
+> **D2 v1 scaffolding BUILT** (defaults: Supabase auth+db+storage · Stripe payments · Resend email · Render host).
+> - `scripts/stack-scaffold.mjs` — backend-shape → `STACK.md` + `.env.example` (secret-marked). **Tested.**
+> - `scripts/act-deploy.mjs server-plan` — server-host deploy plan (host, start, env from `.env.example`, health,
+>   idempotency key, migration policy). **Tested.**
+> - `act-executors.json` `server` connector (Render default) + conductor wiring (Stage 2 real-stack detection;
+>   Deploy server path replacing the D1 stop).
+>
+> What is **build-runtime, not scripted** (correctly): the agentic-app-builder agents actually wire the SDKs +
+> schema/migrations per `STACK.md` during BUILD, and the real outward deploy/provision call is orchestrator-run
+> via the host CLI/MCP behind per-action approval. Real keys are supplied by the user at deploy (host UI), never
+> committed. Follow-up slices: payments/email/storage depth, migration runner, more hosts. The spec below stands.
 
 D1 ships **static** apps to a live URL. But a real launchable product often needs **accounts, payments, and
 shared data** — a backend, a database, secrets, and a server host. That's D2: build on managed services, then
