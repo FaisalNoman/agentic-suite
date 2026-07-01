@@ -35,9 +35,28 @@ function row(state, label, detail, cmd) {
   return `<div class="r ${state}"><span class="ic">${ico}</span><div class="b"><div class="t">${label}</div>${detail ? `<div class="d">${detail}</div>` : ""}</div>${cmd ? `<button class="cp" data-cmd="${esc(cmd)}">copy cmd</button>` : ""}</div>`;
 }
 
+const AD = "node ~/.claude/skills/agentic-suite/scripts/act-deploy.mjs";
+const primaryLive = deploys.find((d) => d.verified && d.url) || deploys.find((d) => d.url);
+
+// prominent "is it live?" hero
+const heroDeploy = primaryLive && primaryLive.verified
+  ? `<div class="hero live"><div><div class="hl">🟢 Live</div><a class="hu" href="${esc(primaryLive.url)}" target="_blank">${esc(primaryLive.url)}</a></div><a class="visit" href="${esc(primaryLive.url)}" target="_blank">Visit ↗</a></div>`
+  : `<div class="hero off"><div><div class="hl">⚪ Not live yet</div><div class="ho">Easiest: drag a folder to Netlify Drop — no account, no CLI.</div></div><button class="cp big" data-cmd="${esc(AD + " bundle <built-dir>")}">copy bundle cmd</button></div>`;
+
+function deployRow(d) {
+  const state = d.verified ? "ok" : d.error ? "warn" : d.url ? "warn" : "todo";
+  const visit = d.url ? `<a class="visit sm" href="${esc(d.url)}" target="_blank">Visit ↗</a>` : "";
+  const detail = d.url
+    ? `<a href="${esc(d.url)}" target="_blank">${esc(d.url)}</a>${d.verified ? " · verified 200" : " · not verified"}${d.connector ? ` · ${esc(d.connector)}` : ""}`
+    : (d.error ? `failed: ${esc(d.error)}` : "not deployed");
+  const cmd = d.url ? d.url : (d.error ? `${AD} doctor` : `${AD} bundle ${esc(d.target)}`);
+  const cmdLabel = d.url ? "copy url" : (d.error ? "check hosts" : "copy bundle cmd");
+  const ico = state === "ok" ? "✅" : state === "warn" ? "⚠️" : "☐";
+  return `<div class="r ${state}"><span class="ic">${ico}</span><div class="b"><div class="t">Deploy · ${esc(d.target)}</div><div class="d">${detail}</div></div>${visit}<button class="cp" data-cmd="${esc(cmd)}">${cmdLabel}</button></div>`;
+}
 const deployRows = deploys.length
-  ? deploys.map((d) => row(d.verified ? "ok" : "warn", `Deploy · ${esc(d.target)}`, d.url ? `<a href="${esc(d.url)}" target="_blank">${esc(d.url)}</a>${d.verified ? " · verified 200" : " · not verified"}` : "not deployed", d.url ? null : `node ~/.claude/skills/agentic-suite/scripts/act-deploy.mjs plan ${esc(d.target)}`)).join("")
-  : row("todo", "Deploy", "no live URL yet — run the Deploy stage (ACT)", "node ~/.claude/skills/agentic-suite/scripts/act-deploy.mjs plan <built-dir>");
+  ? deploys.map(deployRow).join("")
+  : row("todo", "Deploy", "no live URL yet — run the Deploy stage (ACT). Easiest: Netlify Drop.", `${AD} doctor`);
 
 const byCh = {}; execs.forEach((e) => (byCh[e.channel] ||= []).push(e));
 const execRows = Object.keys(byCh).map((ch) => {
@@ -62,9 +81,17 @@ h1{font-size:26px;letter-spacing:-.4px}.sub{font:600 11px var(--mono);letter-spa
 .r .ic{font-size:15px;line-height:1.4}.r .b{flex:1;min-width:0}.r .t{font-weight:600;font-size:14px}.r .d{font-size:12.5px;color:var(--ink2);margin-top:2px;word-break:break-all}
 .cp{font:600 11px var(--mono);background:var(--bg);border:1px solid var(--line2);color:var(--ink2);border-radius:7px;padding:5px 9px;cursor:pointer;white-space:nowrap}.cp:hover{border-color:var(--accent);color:var(--ink)}.cp.ok{color:var(--green);border-color:var(--green)}
 .foot{margin-top:24px;font:600 11px var(--mono);color:var(--dim)}
+.hero{display:flex;align-items:center;justify-content:space-between;gap:14px;border-radius:13px;padding:18px 20px;margin-bottom:18px;border:1px solid var(--line)}
+.hero.live{background:color-mix(in srgb,var(--green) 12%,var(--panel));border-color:color-mix(in srgb,var(--green) 40%,transparent)}
+.hero.off{background:var(--panel)}
+.hl{font-weight:800;font-size:15px}.hu{font:600 13px var(--mono);color:var(--accent);word-break:break-all}.ho{font-size:12.5px;color:var(--ink2);margin-top:3px}
+.visit{background:var(--green);color:#06240f;font-weight:800;font-size:13px;text-decoration:none;padding:9px 16px;border-radius:9px;white-space:nowrap}.visit:hover{filter:brightness(1.08)}
+.visit.sm{padding:6px 11px;font-size:11px}
+.cp.big{padding:9px 14px;font-size:12px}
 </style></head><body>
 <div class="head"><span class="dot"></span><h1>Launch — ${esc(product)}</h1></div>
 <div class="sub">agentic-suite · go-live cockpit</div>
+${heroDeploy}
 <div class="kpis">
   <div class="kpi"><div class="v" style="color:var(--green)">${liveCount}/${deploys.length || 0}</div><div class="l">live deploys</div></div>
   <div class="kpi"><div class="v" style="color:var(--green)">${doneEx}</div><div class="l">actions done</div></div>
