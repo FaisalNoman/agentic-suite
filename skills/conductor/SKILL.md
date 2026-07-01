@@ -195,6 +195,16 @@ without "how to ship it". Then render: `node <conductor-base>/scripts/gtm-roadma
 then turns each task's `asset` into a real artifact where the type is supported; `human`/`connector` tasks keep
 their guidelines for the founder.
 
+**Competitive ad research (when the brief involves ads / paid / competitor analysis).** Instruct
+agentic-worker to gather **real running competitor ads** for the niche via an **Apify ad-library actor**
+(discover via ToolSearch — Meta Ad Library / Google Ads Transparency / TikTok scrapers; respect ToS + rate
+limits), distil them into `grow/outputs/ad-research.json` per `references/ad-research-contract.md` (ads +
+patterns + **angles** + gaps; `longevity_days` ranks proven long-runners), then render:
+`node <conductor-base>/scripts/ad-research.mjs grow/outputs/ad-research.json --no-open` → `ad-research.md` +
+interactive `ad-research.html` (surface in showcase). **The `angles[]` feed ACT's ad-copy writer** (`ads[]`) so
+generated ads copy what's proven — not guesses. If no Apify/ad connector is available, degrade to a template
+the founder fills. Paid launch stays `never_auto` (human presses go).
+
 ## STAGE 4.5 — ACT (optional, opt-in) — make GROW deliverables ship-ready
 
 Phase 1 is **file-only** — it writes under `act/`, never posts/sends/deploys. Full schema in
@@ -339,6 +349,7 @@ board once both engines share a core.)
 - `scripts/lessons-evolve.mjs` + `commands/suite-evolve.md` — **`/suite-evolve`**: promote mature lessons → durable project-local `.agentic-builder/learned-rules.md` (human-gated, append-only). Loaded at planning warm-start.
 - `references/gtm-roadmap-contract.md` + `scripts/gtm-roadmap.mjs` — **GTM-roadmap deliverable**: phased/budgeted/channel-tagged roadmap where every task carries its asset + a human execution playbook + an owner badge (suite/connector/human). Renders `gtm-roadmap.md` + interactive `gtm-roadmap.html`.
 - `scripts/page-scaffold.mjs` — **ACT page scaffolder** (Executor A boilerplate path): generates static privacy/terms/security/status/waitlist/pricing pages (legal = template + review banner) without a full build agent; complex app/landing still uses agentic-app-builder.
+- `references/ad-research-contract.md` + `scripts/ad-research.mjs` — **competitive ad research**: gather real running competitor ads (via Apify ad-library MCP) → report + interactive board ranked by longevity (proven long-runners) + recommended **angles** that feed ACT's ad-copy writer. Grounds ads in what works, not guesses.
 - `references/research-first.md` — spec for fix #5 (optional RESEARCH-first pre-stage: research → BUILD → GROW → ACT). Not built.
 - `references/deploy-stage.md` + `scripts/act-deploy.mjs` — **Deploy stage D1 (go-live)**: `doctor` (upfront host-readiness table) · `plan` (est_url + reversible) · `bundle` (Netlify-Drop drag-and-drop folder, zero account/CLI — easiest for founders) · deploy to a live URL (GitHub Pages default) · verify-200 · `LAUNCH.md`. Gated · idempotent. Static-only; server apps → D2.
 - `scripts/smoke-check.mjs` — **verify-it-runs** (post-gate): detect run/port, boot, probe 200 → live preview URL; exit 4 = static/library (skip).
