@@ -6,10 +6,13 @@
 // verify-200; the orchestrator runs this behind per-action approval (ACT Phase 2).
 //
 // Subcommands:
-//   plan   <targetDir>                 → detect static/server, build cmd, dist, connector, idempotency key (JSON; no side effects)
-//   verify <url>                       → HTTP GET, expect 200 (exit 0 ok / 1 not)
-//   launch [--act-dir act]            → (re)write LAUNCH.md from ACT-PLAN deploys + outputs
-//   manual <targetDir> [--act-dir act] → write act/deploy/<name>.deploy.md with manual steps (degrade path)
+//   plan    <targetDir>                → detect static/server, build cmd, dist, connector, idempotency key (JSON; no side effects)
+//   doctor  [dir] [--json]             → deploy-readiness table: which hosts are ready vs need one-time setup
+//   bundle  <builtDir> [--act-dir act] → copy the built site + a HOW-TO-DEPLOY.md into act/deploy/bundle-*/ for
+//                                        Netlify Drop (zero account/CLI) + CLI alternatives — easiest path for founders
+//   verify  <url>                      → HTTP GET, expect 200 (exit 0 ok / 1 not)
+//   launch  [--act-dir act]           → (re)write LAUNCH.md from ACT-PLAN deploys + outputs
+//   manual  <targetDir> [--act-dir act] → write act/deploy/<name>.deploy.md with manual steps (degrade path)
 // The actual deploy command is run by the orchestrator (build + connector) so auth/MCP is handled in-session;
 // this script owns detection, idempotency, verify, and the LAUNCH/manual records — the deterministic parts.
 
@@ -74,8 +77,10 @@ if (cmd === "plan") {
     target: pos, needsServer: d.needsServer, static: !d.needsServer, tool: d.tool,
     build_cmd: d.staticAlready ? null : d.buildCmd, dist: d.dist, dist_exists: exists(distPath),
     connector: conn.name, command: conn.cmd.replace("<dist>", `${pos}/${d.dist}`.replace(/\\/g, "/")),
-    idempotency_key: key,
-    note: d.needsServer ? "NEEDS A SERVER → Deploy D2 (not built). Deploy static targets only; flag this one." : "static — D1 can deploy",
+    idempotency_key: key, reversible: true,
+    est_url: conn.name === "github-pages" ? "https://<user>.github.io/<repo>/" : conn.name === "netlify-cli" ? "https://<name>.netlify.app" : "https://<deployment-url>",
+    easiest_no_setup: "act-deploy.mjs bundle " + `${pos}/${d.dist}`.replace(/\\/g, "/") + " → drag to app.netlify.com/drop",
+    note: d.needsServer ? "NEEDS A SERVER → Deploy D2 (not built). Deploy static targets only; flag this one." : "static — D1 can deploy (reversible: redeploy/rollback anytime)",
   };
   console.log(JSON.stringify(plan, null, 2));
   process.exit(d.needsServer ? 3 : 0);   // exit 3 = needs D2
@@ -101,6 +106,51 @@ if (cmd === "server-plan") {
     migrations: "forward-only by default; destructive migrations require explicit confirmation",
   };
   console.log(JSON.stringify(plan, null, 2));
+  process.exit(0);
+}
+
+if (cmd === "doctor") {
+  // Upfront readiness table — which hosts are ready vs need one-time setup. Checked
+  // BEFORE deploy so the user never hits a late "no connector" surprise.
+  const has = (c) => { try { execSync(process.platform === "win32" ? `where ${c}` : `command -v ${c}`, { stdio: "ignore" }); return true; } catch { return false; } };
+  const hasRemote = (() => { try { execSync("git remote get-url origin", { stdio: "ignore", cwd: pos ? path.resolve(process.cwd(), pos) : process.cwd() }); return true; } catch { return false; } })();
+  const rows = [
+    { host: "Netlify Drop", status: "ready", detail: "no account, no CLI — drag a folder", enable: "act-deploy.mjs bundle <dir> → drag to app.netlify.com/drop", easiest: true },
+    { host: "GitHub Pages", status: hasRemote && has("git") ? "ready" : "needs-setup", detail: hasRemote ? "git remote found" : "no git remote", enable: hasRemote ? "npx gh-pages -d <dist>" : "git init && git remote add origin <repo-url>" },
+    { host: "Netlify CLI", status: has("netlify") ? "ready-if-logged-in" : "not-installed", detail: has("netlify") ? "run `netlify status` to confirm login" : "", enable: has("netlify") ? "netlify login (once)" : "npm i -g netlify-cli && netlify login" },
+    { host: "Vercel CLI", status: has("vercel") ? "ready-if-logged-in" : "not-installed", detail: "", enable: has("vercel") ? "vercel login (once)" : "npm i -g vercel && vercel login" },
+  ];
+  const ready = rows.filter((r) => r.status === "ready");
+  const rec = ready.find((r) => !r.easiest) || ready[0];
+  if (rest.includes("--json")) { console.log(JSON.stringify({ rows, recommended: rec && rec.host }, null, 2)); process.exit(0); }
+  console.log("Deploy readiness:\n");
+  for (const r of rows) { const ic = r.status.startsWith("ready") ? "✅" : r.status === "needs-setup" ? "⚙️ " : "⬇️ "; console.log(`  ${ic} ${r.host.padEnd(14)} ${r.status.padEnd(20)} ${r.detail}`); console.log(`     → ${r.enable}`); }
+  console.log(`\n  Easiest (zero setup): Netlify Drop.  Recommended ready path: ${rec ? rec.host : "Netlify Drop"}.`);
+  process.exit(0);
+}
+
+if (cmd === "bundle") {
+  // Produce a drag-and-drop-ready folder + a README — the zero-CLI, zero-account
+  // path for non-technical founders (Netlify Drop), plus the CLI alternatives.
+  if (!pos) { console.error("bundle: need <builtDir>"); process.exit(2); }
+  const src = path.resolve(process.cwd(), pos);
+  if (!exists(src)) { console.error(`bundle: ${pos} does not exist (build it first)`); process.exit(2); }
+  const actDir = path.resolve(process.cwd(), opt("act-dir", "act"));
+  const name = pos.replace(/[^\w.-]+/g, "-").replace(/^-|-$/g, "") || "site";
+  const dest = path.join(actDir, "deploy", `bundle-${name}`);
+  fs.rmSync(dest, { recursive: true, force: true });
+  fs.mkdirSync(dest, { recursive: true });
+  fs.cpSync(src, dest, { recursive: true });
+  const readme = `# Deploy ${pos} — pick one (easiest first)\n\n` +
+    `## ✅ Option A — Netlify Drop (no account, no command line)\n` +
+    `1. Open **https://app.netlify.com/drop**\n2. Drag **this whole folder** (\`${path.basename(dest)}\`) onto the page.\n3. You get a live URL in a few seconds. Done.\n\n` +
+    `## Option B — GitHub Pages (uses your git)\n\`\`\`\nnpx gh-pages -d ${pos}\n\`\`\`\n\n` +
+    `## Option C — Netlify CLI\n\`\`\`\nnetlify deploy --prod --dir ${pos}\n\`\`\`\n\n` +
+    `## Option D — Vercel\n\`\`\`\nvercel --prod\n\`\`\`\n\nAll options are reversible (redeploy / rollback). This bundle is a static copy of your built site.\n`;
+  fs.writeFileSync(path.join(dest, "HOW-TO-DEPLOY.md"), readme);
+  console.log(`bundle: ${dest.replace(/\\/g, "/")}  (${fs.readdirSync(dest).length} entries)`);
+  console.log(`  → EASIEST: open https://app.netlify.com/drop and drag the "${path.basename(dest)}" folder in. Live URL, no account.`);
+  console.log(`  → see ${path.join(dest, "HOW-TO-DEPLOY.md").replace(/\\/g, "/")} for all options.`);
   process.exit(0);
 }
 
@@ -154,7 +204,7 @@ if (cmd === "launch") {
   process.exit(0);
 }
 
-if (!["plan", "server-plan", "verify", "manual", "launch"].includes(cmd)) {
-  console.error("usage: act-deploy.mjs plan <dir> | server-plan <dir> | verify <url> | manual <dir> | launch [--act-dir act]");
+if (!["plan", "server-plan", "doctor", "bundle", "verify", "manual", "launch"].includes(cmd)) {
+  console.error("usage: act-deploy.mjs plan <dir> | server-plan <dir> | doctor [dir] [--json] | bundle <builtDir> | verify <url> | manual <dir> | launch [--act-dir act]");
   process.exit(2);
 }

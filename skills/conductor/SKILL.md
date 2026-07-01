@@ -234,8 +234,10 @@ Phase 1 is **file-only** — it writes under `act/`, never posts/sends/deploys. 
    `act-execute.mjs record --key <key> --status executed --result <url>` and `act-ledger.mjs record`.
    **Five guardrails are mandatory:** per-action approval · dry-run first · idempotent · draft/reversible-first
    (`mode:"draft"` only stages drafts — never auto-publish) · never `policy.never_auto`.
-   **Deploy / go-live (D1, the highest-value action):** for each web/software target (the built app's dist
-   and the ACT landing page), run `node <conductor-base>/scripts/act-deploy.mjs plan <targetDir>`. If it
+   **Deploy / go-live (D1, the highest-value action):** first run `node <conductor-base>/scripts/act-deploy.mjs doctor`
+   and **surface the readiness table** so the user sees, upfront, which hosts are ready vs need one-time setup
+   (never a late "no connector" surprise). Then for each web/software target (the built app's dist and the ACT
+   landing page), run `node <conductor-base>/scripts/act-deploy.mjs plan <targetDir>`. If it
    exits 3 (`needsServer`) → **Deploy D2 (server host):** still deploy any static targets (landing) via D1,
    then run `node <conductor-base>/scripts/act-deploy.mjs server-plan build` → resolve a server-host connector
    (default **Render**; Fly/Railway if their CLI/MCP is present; none → write the manual steps), set the env
@@ -243,8 +245,11 @@ Phase 1 is **file-only** — it writes under `act/`, never posts/sends/deploys. 
    run migrations (**forward-only; destructive needs explicit confirm**), and `verify` the health URL (200).
    Per-action approval + idempotent (server key). This is billable/stateful — note the cost/plan. Else (static):
    resolve the connector (default **GitHub
-   Pages**; auto-use Netlify/Vercel if their CLI/MCP is present; if none, run `act-deploy.mjs manual` and
-   surface the steps), show the dry-run + **per-action approval**, run the build + connector command, then
+   Pages**; auto-use Netlify/Vercel if their CLI/MCP is present; **if none is ready, run
+   `act-deploy.mjs bundle <builtDir>`** — it produces a drag-and-drop folder + `HOW-TO-DEPLOY.md`; tell the user
+   the easiest zero-setup path: *"open app.netlify.com/drop and drag the `bundle-*` folder in for an instant live
+   URL — no account, no CLI"*), show the dry-run + **per-action approval** (include the plan's `est_url` and that
+   it is reversible), run the build + connector command, then
    **verify** with `act-deploy.mjs verify <url>` (must be 200), and record the live URL. Finally run
    `node <conductor-base>/scripts/act-deploy.mjs launch` to write **`LAUNCH.md`** (live URLs + remaining
    launch tasks). Idempotent (keyed on target+build-hash — never re-deploys the same build).
@@ -335,7 +340,7 @@ board once both engines share a core.)
 - `references/gtm-roadmap-contract.md` + `scripts/gtm-roadmap.mjs` — **GTM-roadmap deliverable**: phased/budgeted/channel-tagged roadmap where every task carries its asset + a human execution playbook + an owner badge (suite/connector/human). Renders `gtm-roadmap.md` + interactive `gtm-roadmap.html`.
 - `scripts/page-scaffold.mjs` — **ACT page scaffolder** (Executor A boilerplate path): generates static privacy/terms/security/status/waitlist/pricing pages (legal = template + review banner) without a full build agent; complex app/landing still uses agentic-app-builder.
 - `references/research-first.md` — spec for fix #5 (optional RESEARCH-first pre-stage: research → BUILD → GROW → ACT). Not built.
-- `references/deploy-stage.md` + `scripts/act-deploy.mjs` — **Deploy stage D1 (go-live)**: deploy the built app + landing page to a live URL (GitHub Pages default), gated · idempotent · verify-200 · `LAUNCH.md`. Static-only; server apps → D2 (not built).
+- `references/deploy-stage.md` + `scripts/act-deploy.mjs` — **Deploy stage D1 (go-live)**: `doctor` (upfront host-readiness table) · `plan` (est_url + reversible) · `bundle` (Netlify-Drop drag-and-drop folder, zero account/CLI — easiest for founders) · deploy to a live URL (GitHub Pages default) · verify-200 · `LAUNCH.md`. Gated · idempotent. Static-only; server apps → D2.
 - `scripts/smoke-check.mjs` — **verify-it-runs** (post-gate): detect run/port, boot, probe 200 → live preview URL; exit 4 = static/library (skip).
 - `scripts/launch-cockpit.mjs` — **launch cockpit**: generates `LAUNCH.html` (live deploy URLs · reversible-action status · remaining manual steps · copy-to-run commands) at wrap.
 - `references/realstack-d2.md` + `scripts/stack-scaffold.mjs` + `scripts/act-deploy.mjs server-plan` — **Deploy D2 / real stack (v1)**: backend-shape → managed services (`STACK.md` + `.env.example`) → server-host deploy (Render default). SDK integration is build-runtime; outward deploy is orchestrator-run, gated.
