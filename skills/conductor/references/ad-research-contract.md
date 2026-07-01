@@ -50,3 +50,28 @@ content is the worker's.
 2. `ad-research.mjs` renders `grow/outputs/ad-research.{md,html}` (surfaced in the showcase).
 3. ACT ad-copy (`ads[]`) is written **from the `angles[]`** — evidence-based, not invented. Paid launch stays
    `never_auto` (human presses go on the ad platform).
+
+## User journey
+**Prerequisite (one-time):** the user connects an **Apify MCP** (with a Meta/Google/TikTok ad-library actor).
+If absent, the degrade path runs — same structure, no live data.
+
+**Happy path (connector present):**
+1. **Trigger** — the user includes an ad/competitor ask, e.g. *"…create Meta + Google ad copy, and research what
+   competitors are actually running."* (works inside a full suite run or a grow-only run).
+2. **Detect** — GROW recognizes the intent; the :4318 board shows "gathering competitor ads…".
+3. **Fetch** — worker discovers the Apify ad-library actor via ToolSearch → pulls real running ads (advertiser,
+   copy, CTA, how long each has run).
+4. **Distil + render** — worker writes `ad-research.json` (ads + patterns + **angles** + gaps) → `ad-research.mjs`
+   renders `ad-research.{md,html}`.
+5. **User sees the board** — `ad-research.html` opens: ad cards sorted by longevity, ✅ **proven** badge on
+   30-day+ runners, repeating **patterns**, **gaps/wedges**, and **▶ recommended angles**.
+6. **Angles → copy (ACT)** — the ad-copy writer generates `ads.csv` **from those proven angles**, validated
+   (Google ≤30/≤90).
+7. **Human launches** — the founder imports `ads.csv` into Google/Meta Ads and presses go. **Paid launch is
+   `never_auto`** — the suite never spends ad money.
+
+**Degrade path (no connector):** step 3 finds nothing → worker writes a **template** `ad-research.json` (empty
+cards + "paste 5 competitor ads here" prompts); the board renders as a fillable framework. Nothing breaks.
+
+**One line:** find what competitors pay to keep running → copy the winning angles → generate validated ad copy
+→ the founder launches it. Evidence in, guessing out; money-spend stays human.
